@@ -16,13 +16,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserRequest'
         required: true
       security:
       - jwtAuth: []
@@ -102,13 +102,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
       security:
       - jwtAuth: []
       responses:
@@ -130,13 +130,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Login'
+              $ref: '#/components/schemas/LoginRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Login'
+              $ref: '#/components/schemas/LoginRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Login'
+              $ref: '#/components/schemas/LoginRequest'
         required: true
       security:
       - jwtAuth: []
@@ -175,13 +175,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedUser'
+              $ref: '#/components/schemas/PatchedUserRequest'
       security:
       - jwtAuth: []
       responses:
@@ -203,13 +203,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/TokenRefresh'
+              $ref: '#/components/schemas/TokenRefreshRequest'
         required: true
       responses:
         '200':
@@ -229,13 +229,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Register'
+              $ref: '#/components/schemas/RegisterRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Register'
+              $ref: '#/components/schemas/RegisterRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Register'
+              $ref: '#/components/schemas/RegisterRequest'
         required: true
       security:
       - jwtAuth: []
@@ -307,17 +307,6 @@ paths:
         required: true
       tags:
       - cart
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedCart'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedCart'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedCart'
       security:
       - jwtAuth: []
       responses:
@@ -334,17 +323,6 @@ paths:
       summary: Adicionar item ao carrinho
       tags:
       - cart
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Cart'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Cart'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Cart'
       security:
       - jwtAuth: []
       responses:
@@ -436,13 +414,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedStock'
+              $ref: '#/components/schemas/PatchedStockRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedStock'
+              $ref: '#/components/schemas/PatchedStockRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedStock'
+              $ref: '#/components/schemas/PatchedStockRequest'
       security:
       - jwtAuth: []
       responses:
@@ -509,13 +487,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Order'
+              $ref: '#/components/schemas/OrderRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Order'
+              $ref: '#/components/schemas/OrderRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Order'
+              $ref: '#/components/schemas/OrderRequest'
         required: true
       security:
       - jwtAuth: []
@@ -566,13 +544,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Order'
+              $ref: '#/components/schemas/OrderRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Order'
+              $ref: '#/components/schemas/OrderRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Order'
+              $ref: '#/components/schemas/OrderRequest'
         required: true
       security:
       - jwtAuth: []
@@ -600,13 +578,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedOrder'
+              $ref: '#/components/schemas/PatchedOrderRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedOrder'
+              $ref: '#/components/schemas/PatchedOrderRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedOrder'
+              $ref: '#/components/schemas/PatchedOrderRequest'
       security:
       - jwtAuth: []
       responses:
@@ -703,13 +681,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Payment'
+              $ref: '#/components/schemas/PaymentRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Payment'
+              $ref: '#/components/schemas/PaymentRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Payment'
+              $ref: '#/components/schemas/PaymentRequest'
         required: true
       security:
       - jwtAuth: []
@@ -732,13 +710,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Payment'
+              $ref: '#/components/schemas/PaymentRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Payment'
+              $ref: '#/components/schemas/PaymentRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Payment'
+              $ref: '#/components/schemas/PaymentRequest'
         required: true
       security:
       - jwtAuth: []
@@ -786,15 +764,15 @@ paths:
       - products
       requestBody:
         content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Product'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Product'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Product'
+              $ref: '#/components/schemas/ProductRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
         required: true
       security:
       - jwtAuth: []
@@ -841,15 +819,15 @@ paths:
       - products
       requestBody:
         content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Product'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Product'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Product'
+              $ref: '#/components/schemas/ProductRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
         required: true
       security:
       - jwtAuth: []
@@ -874,15 +852,15 @@ paths:
       - products
       requestBody:
         content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedProduct'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedProduct'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedProduct'
+              $ref: '#/components/schemas/PatchedProductRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProductRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProductRequest'
       security:
       - jwtAuth: []
       responses:
@@ -965,13 +943,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Category'
+              $ref: '#/components/schemas/CategoryRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Category'
+              $ref: '#/components/schemas/CategoryRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Category'
+              $ref: '#/components/schemas/CategoryRequest'
         required: true
       security:
       - jwtAuth: []
@@ -1020,13 +998,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Category'
+              $ref: '#/components/schemas/CategoryRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Category'
+              $ref: '#/components/schemas/CategoryRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Category'
+              $ref: '#/components/schemas/CategoryRequest'
         required: true
       security:
       - jwtAuth: []
@@ -1053,13 +1031,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedCategory'
+              $ref: '#/components/schemas/PatchedCategoryRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedCategory'
+              $ref: '#/components/schemas/PatchedCategoryRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedCategory'
+              $ref: '#/components/schemas/PatchedCategoryRequest'
       security:
       - jwtAuth: []
       responses:
@@ -1337,6 +1315,17 @@ components:
       - product
       - product_detail
       - subtotal
+    CartItemRequest:
+      type: object
+      properties:
+        product:
+          type: integer
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+      required:
+      - product
     Category:
       type: object
       properties:
@@ -1354,6 +1343,23 @@ components:
           type: string
       required:
       - id
+      - name
+      - slug
+    CategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+      required:
       - name
       - slug
     Dashboard:
@@ -1385,9 +1391,19 @@ components:
         email:
           type: string
           format: email
+      required:
+      - email
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
         password:
           type: string
           writeOnly: true
+          minLength: 1
       required:
       - email
       - password
@@ -1476,6 +1492,36 @@ components:
       - product_price
       - quantity
       - subtotal
+    OrderItemRequest:
+      type: object
+      properties:
+        product:
+          type: integer
+          nullable: true
+        product_name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        product_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+      required:
+      - product_name
+      - product_price
+      - quantity
+    OrderRequest:
+      type: object
+      properties:
+        shipping_address:
+          type: string
+          minLength: 1
+      required:
+      - shipping_address
     OrderStatus:
       type: object
       properties:
@@ -1730,93 +1776,39 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/User'
-    PatchedCart:
+    PatchedCategoryRequest:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/CartItem'
-          readOnly: true
-        total:
-          type: string
-          readOnly: true
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-    PatchedCategory:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
         name:
           type: string
+          minLength: 1
           maxLength: 100
         slug:
           type: string
+          minLength: 1
           maxLength: 100
           pattern: ^[-a-zA-Z0-9_]+$
         description:
           type: string
-    PatchedOrder:
+    PatchedOrderRequest:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
-        user:
-          type: integer
-          readOnly: true
-        status:
-          allOf:
-          - $ref: '#/components/schemas/OrderStatusEnum'
-          readOnly: true
-        total:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-          readOnly: true
         shipping_address:
           type: string
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/OrderItem'
-          readOnly: true
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-    PatchedProduct:
+          minLength: 1
+    PatchedProductRequest:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         category:
           type: string
-        category_detail:
-          allOf:
-          - $ref: '#/components/schemas/Category'
-          readOnly: true
+          minLength: 1
         name:
           type: string
+          minLength: 1
           maxLength: 200
         slug:
           type: string
+          minLength: 1
           maxLength: 200
           pattern: ^[-a-zA-Z0-9_]+$
         description:
@@ -1843,58 +1835,28 @@ components:
         specifications: {}
         image:
           type: string
-          format: uri
+          format: binary
         is_active:
           type: boolean
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-    PatchedStock:
+    PatchedStockRequest:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         product:
           type: integer
-        product_detail:
-          allOf:
-          - $ref: '#/components/schemas/Product'
-          readOnly: true
         quantity:
           type: integer
           maximum: 2147483647
           minimum: 0
-        reserved:
-          type: integer
-          readOnly: true
-        available:
-          type: string
-          readOnly: true
         low_stock_threshold:
           type: integer
           maximum: 2147483647
           minimum: 0
-        is_low_stock:
-          type: string
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-    PatchedUser:
+    PatchedUserRequest:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         username:
           type: string
+          minLength: 1
           description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
             only.
           pattern: ^[\w.@+-]+$
@@ -1910,19 +1872,11 @@ components:
         last_name:
           type: string
           maxLength: 150
-        role:
-          allOf:
-          - $ref: '#/components/schemas/RoleEnum'
-          readOnly: true
         phone:
           type: string
           maxLength: 20
         address:
           type: string
-        date_joined:
-          type: string
-          format: date-time
-          readOnly: true
     Payment:
       type: object
       properties:
@@ -1967,6 +1921,18 @@ components:
       - transaction_id
       - updated_at
       - user
+    PaymentRequest:
+      type: object
+      properties:
+        order:
+          type: integer
+        method:
+          type: string
+          minLength: 1
+          maxLength: 50
+      required:
+      - method
+      - order
     PaymentStatusEnum:
       enum:
       - pending
@@ -2040,8 +2006,53 @@ components:
       - id
       - name
       - price
-      - slug
       - updated_at
+    ProductRequest:
+      type: object
+      properties:
+        category:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        brand:
+          type: string
+          maxLength: 100
+        color:
+          type: string
+          maxLength: 50
+        material:
+          type: string
+          maxLength: 100
+        weight:
+          type: string
+          maxLength: 50
+        dimensions:
+          type: string
+          maxLength: 100
+        specifications: {}
+        image:
+          type: string
+          format: binary
+        is_active:
+          type: boolean
+      required:
+      - category
+      - name
+      - price
     Register:
       type: object
       properties:
@@ -2050,6 +2061,35 @@ components:
           readOnly: true
         username:
           type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+      required:
+      - id
+      - username
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
           description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
             only.
           pattern: ^[\w.@+-]+$
@@ -2079,7 +2119,6 @@ components:
         address:
           type: string
       required:
-      - id
       - password
       - password2
       - username
@@ -2157,6 +2196,14 @@ components:
       required:
       - access
       - refresh
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
     User:
       type: object
       properties:
@@ -2197,6 +2244,34 @@ components:
       - date_joined
       - id
       - role
+      - username
+    UserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+      required:
       - username
   securitySchemes:
     jwtAuth:
