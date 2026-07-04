@@ -51,6 +51,7 @@ export default function ProductsManagement() {
   const [productForm, setProductForm] = useState(emptyProductForm);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
 
@@ -91,6 +92,17 @@ export default function ProductsManagement() {
     if (imagePreview && imagePreview.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
     setImageFile(null);
     setImagePreview(null);
+    setImageRemoved(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // Clique explícito no botão "Remover" — diferente de resetImageState, marca
+  // que a imagem existente deve ser apagada no backend ao salvar.
+  const handleRemoveImage = () => {
+    if (imagePreview && imagePreview.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
+    setImageFile(null);
+    setImagePreview(null);
+    setImageRemoved(true);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -137,6 +149,7 @@ export default function ProductsManagement() {
     if (imagePreview && imagePreview.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
+    setImageRemoved(false);
   };
 
   const handleProductSubmit = async (e: React.FormEvent) => {
@@ -153,16 +166,19 @@ export default function ProductsManagement() {
     }
 
     const payload = { ...productForm, specifications };
+    // File novo -> upload; imageRemoved -> sinaliza remoção (null); caso contrário
+    // undefined, para não tocar na imagem já existente do produto.
+    const imagePayload = imageFile ?? (imageRemoved ? null : undefined);
     setIsSavingProduct(true);
 
     try {
       if (editingProduct) {
         // Edição completa: o formulário já fornece todos os campos editáveis, então
         // usamos PUT (substituição total) em vez de PATCH.
-        await productsAPI.replace(editingProduct.slug, payload, imageFile);
+        await productsAPI.replace(editingProduct.slug, payload, imagePayload);
         toast.success('Produto atualizado com sucesso!');
       } else {
-        await productsAPI.create(payload, imageFile);
+        await productsAPI.create(payload, imageFile ?? undefined);
         toast.success('Produto criado com sucesso!');
       }
 
@@ -439,7 +455,7 @@ export default function ProductsManagement() {
                       {imagePreview ? 'Trocar imagem' : 'Selecionar imagem'}
                     </Button>
                     {imagePreview && (
-                      <Button type="button" variant="ghost" size="sm" onClick={resetImageState}>
+                      <Button type="button" variant="ghost" size="sm" onClick={handleRemoveImage}>
                         <X className="h-4 w-4 mr-2" />
                         Remover
                       </Button>

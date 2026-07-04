@@ -2,6 +2,17 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
+// Origem do backend (sem o sufixo "/api") — usada para resolver caminhos de mídia
+// relativos (ex: "/media/products/foo.jpg") que o Django retorna quando o
+// serializer não tem contexto de `request` para montar uma URL absoluta.
+const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+
+const resolveMediaUrl = (url?: string | null): string | undefined => {
+  if (!url) return undefined;
+  if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) return url;
+  return `${API_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 // ========== TIPOS (schemas do OpenAPI) ==========
 
 export type RoleEnum = 'admin' | 'customer';
@@ -113,6 +124,23 @@ export interface Paginated<T> {
   previous: string | null;
   results: T[];
 }
+
+// Garante que `Product.image` seja sempre uma URL absoluta consumível diretamente
+// em <img src>, mesmo quando o backend devolve um caminho relativo de mídia.
+const normalizeProduct = (product: Product): Product => ({
+  ...product,
+  image: resolveMediaUrl(product.image) ?? null,
+});
+
+const normalizeCart = (cart: Cart): Cart => ({
+  ...cart,
+  items: cart.items.map((item) => ({ ...item, product_detail: normalizeProduct(item.product_detail) })),
+});
+
+const normalizeStock = (stock: Stock): Stock => ({
+  ...stock,
+  product_detail: normalizeProduct(stock.product_detail),
+});
 
 // ========== RELATÓRIOS (schemas agora tipados no spec) ==========
 
@@ -356,60 +384,92 @@ export const authAPI = {
 
 // ========== PRODUTOS ==========
 
-const buildProductFormData = (data: Partial<Product>, imageFile: File): FormData => {
+// `imageFile`: um File novo faz upload; `null` sinaliza remoção explícita da
+// imagem existente (envia campo vazio); `undefined` não é chamado por aqui —
+// nesse caso o payload segue como JSON puro, sem tocar no campo `image`.
+const buildProductFormData = (data: Partial<Product>, imageFile: File | null): FormData => {
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {
     if (value === undefined || value === null || key === 'image') return;
     const serialized = typeof value === 'object' ? JSON.stringify(value) : String(value);
     formData.append(key, serialized);
   });
-  formData.append('image', imageFile);
+  if (imageFile) {
+    formData.append('image', imageFile);
+  } else {
+    formData.append('image', ''); // remove a imagem existente no backend
+  }
   return formData;
 };
 
 export const productsAPI = {
   getAll: async (page = 1, pageSize = 50): Promise<Paginated<Product>> => {
-    return apiRequest(`/products/?page=${page}&page_size=${pageSize}`, { auth: false });
+    const data = await apiRequest<Paginated<Product>>(`/products/?page=${page}&page_size=${pageSize}`, {
+      auth: false,
+    });
+    return { ...data, results: data.results.map(normalizeProduct) };
   },
 
   getBySlug: async (slug: string): Promise<Product> => {
-    return apiRequest(`/products/${slug}/`, { auth: false });
+    const data = await apiRequest<Product>(`/products/${slug}/`, { auth: false });
+    return normalizeProduct(data);
   },
 
   getByCategory: async (categorySlug: string): Promise<Product[]> => {
-    return apiRequest(`/products/by_category/?category=${encodeURIComponent(categorySlug)}`, { auth: false });
+    const data = await apiRequest<Product[]>(
+      `/products/by_category/?category=${encodeURIComponent(categorySlug)}`,
+      { auth: false }
+    );
+    return data.map(normalizeProduct);
   },
 
+  // `imageFile`: File novo faz upload; `null` remove a imagem existente
+  // (só relevante em update/replace); `undefined`/omitido não altera a imagem.
   create: async (data: Partial<Product>, imageFile?: File | null): Promise<Product> => {
-    if (imageFile) {
-      return apiRequest('/products/', { method: 'POST', body: buildProductFormData(data, imageFile) });
+    if (imageFile !== undefined) {
+      const result = await apiRequest<Product>('/products/', {
+        method: 'POST',
+        body: buildProductFormData(data, imageFile),
+      });
+      return normalizeProduct(result);
     }
-    return apiRequest('/products/', {
+    const result = await apiRequest<Product>('/products/', {
       method: 'POST',
       body: JSON.stringify(data),
     });
+    return normalizeProduct(result);
   },
 
   update: async (slug: string, data: Partial<Product>, imageFile?: File | null): Promise<Product> => {
-    if (imageFile) {
-      return apiRequest(`/products/${slug}/`, { method: 'PATCH', body: buildProductFormData(data, imageFile) });
+    if (imageFile !== undefined) {
+      const result = await apiRequest<Product>(`/products/${slug}/`, {
+        method: 'PATCH',
+        body: buildProductFormData(data, imageFile),
+      });
+      return normalizeProduct(result);
     }
-    return apiRequest(`/products/${slug}/`, {
+    const result = await apiRequest<Product>(`/products/${slug}/`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
+    return normalizeProduct(result);
   },
 
   // Substituição completa (PUT) — usada quando o formulário já fornece todos os
   // campos editáveis do produto, em vez de um PATCH parcial.
   replace: async (slug: string, data: Partial<Product>, imageFile?: File | null): Promise<Product> => {
-    if (imageFile) {
-      return apiRequest(`/products/${slug}/`, { method: 'PUT', body: buildProductFormData(data, imageFile) });
+    if (imageFile !== undefined) {
+      const result = await apiRequest<Product>(`/products/${slug}/`, {
+        method: 'PUT',
+        body: buildProductFormData(data, imageFile),
+      });
+      return normalizeProduct(result);
     }
-    return apiRequest(`/products/${slug}/`, {
+    const result = await apiRequest<Product>(`/products/${slug}/`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
+    return normalizeProduct(result);
   },
 
   delete: async (slug: string): Promise<void> => {
@@ -463,24 +523,27 @@ export const cartAPI = {
     // O schema documenta a resposta como PaginatedCartList, mas o backend real
     // retorna o objeto Cart diretamente — aceita ambos os formatos.
     const response = await apiRequest<Paginated<Cart> | Cart>('/cart/');
-    if ('results' in response) {
-      return response.results[0] || { id: 0, items: [], total: '0', created_at: '', updated_at: '' };
-    }
-    return response;
+    const cart =
+      'results' in response
+        ? response.results[0] || { id: 0, items: [], total: '0', created_at: '', updated_at: '' }
+        : response;
+    return normalizeCart(cart);
   },
 
   addItem: async (productId: number, quantity: number): Promise<Cart> => {
-    return apiRequest('/cart/add/', {
+    const result = await apiRequest<Cart>('/cart/add/', {
       method: 'POST',
       body: JSON.stringify({ product: productId, quantity }),
     });
+    return normalizeCart(result);
   },
 
   updateQuantity: async (itemId: number, quantity: number): Promise<Cart> => {
-    return apiRequest(`/cart/${itemId}/update_quantity/`, {
+    const result = await apiRequest<Cart>(`/cart/${itemId}/update_quantity/`, {
       method: 'PATCH',
       body: JSON.stringify({ quantity }),
     });
+    return normalizeCart(result);
   },
 
   removeItem: async (itemId: number): Promise<void> => {
@@ -556,11 +619,13 @@ export const paymentsAPI = {
 
 export const inventoryAPI = {
   getAll: async (page = 1, pageSize = 50): Promise<Paginated<Stock>> => {
-    return apiRequest(`/inventory/?page=${page}&page_size=${pageSize}`);
+    const data = await apiRequest<Paginated<Stock>>(`/inventory/?page=${page}&page_size=${pageSize}`);
+    return { ...data, results: data.results.map(normalizeStock) };
   },
 
   getById: async (id: number): Promise<Stock> => {
-    return apiRequest(`/inventory/${id}/`);
+    const data = await apiRequest<Stock>(`/inventory/${id}/`);
+    return normalizeStock(data);
   },
 
   // O schema documenta a resposta como um único Stock, mas o backend provavelmente
@@ -568,16 +633,16 @@ export const inventoryAPI = {
   // três formatos possíveis de forma defensiva.
   getLowStock: async (): Promise<Stock[]> => {
     const response = await apiRequest<Stock | Stock[] | Paginated<Stock>>('/inventory/low_stock/');
-    if (Array.isArray(response)) return response;
-    if (response && 'results' in response) return response.results;
-    return response ? [response] : [];
+    const stocks = Array.isArray(response) ? response : response && 'results' in response ? response.results : response ? [response] : [];
+    return stocks.map(normalizeStock);
   },
 
   adjust: async (id: number, quantity: number): Promise<Stock> => {
-    return apiRequest(`/inventory/${id}/adjust/`, {
+    const data = await apiRequest<Stock>(`/inventory/${id}/adjust/`, {
       method: 'PATCH',
       body: JSON.stringify({ quantity }),
     });
+    return normalizeStock(data);
   },
 };
 
