@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/tabs';
+import { Switch } from '../../components/ui/switch';
 import { useCurrency } from '../../hooks/useCurrency';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Search, ImagePlus, X } from 'lucide-react';
@@ -27,6 +28,12 @@ const emptyProductForm = {
   price: '',
   category: '',
   is_active: true,
+  brand: '',
+  color: '',
+  material: '',
+  weight: '',
+  dimensions: '',
+  specifications: '',
 };
 
 const emptyCategoryForm = { name: '', slug: '', description: '' };
@@ -97,6 +104,12 @@ export default function ProductsManagement() {
         price: product.price,
         category: product.category_detail?.slug || product.category,
         is_active: product.is_active,
+        brand: product.brand || '',
+        color: product.color || '',
+        material: product.material || '',
+        weight: product.weight || '',
+        dimensions: product.dimensions || '',
+        specifications: product.specifications ? JSON.stringify(product.specifications, null, 2) : '',
       });
       setImagePreview(product.image || null);
     } else {
@@ -104,6 +117,18 @@ export default function ProductsManagement() {
       setProductForm(emptyProductForm);
     }
     setIsProductDialogOpen(true);
+  };
+
+  const handleToggleActive = async (product: Product) => {
+    try {
+      await productsAPI.update(product.slug, { is_active: !product.is_active });
+      setProducts((prev) =>
+        prev.map((p) => (p.slug === product.slug ? { ...p, is_active: !p.is_active } : p))
+      );
+      toast.success(product.is_active ? 'Produto desativado' : 'Produto ativado');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao atualizar status do produto');
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,14 +141,28 @@ export default function ProductsManagement() {
 
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    let specifications: Record<string, unknown> | undefined;
+    if (productForm.specifications.trim()) {
+      try {
+        specifications = JSON.parse(productForm.specifications);
+      } catch {
+        toast.error('Especificações inválidas — use um JSON válido, ex: {"voltagem": "220V"}');
+        return;
+      }
+    }
+
+    const payload = { ...productForm, specifications };
     setIsSavingProduct(true);
 
     try {
       if (editingProduct) {
-        await productsAPI.update(editingProduct.slug, productForm, imageFile);
+        // Edição completa: o formulário já fornece todos os campos editáveis, então
+        // usamos PUT (substituição total) em vez de PATCH.
+        await productsAPI.replace(editingProduct.slug, payload, imageFile);
         toast.success('Produto atualizado com sucesso!');
       } else {
-        await productsAPI.create(productForm, imageFile);
+        await productsAPI.create(payload, imageFile);
         toast.success('Produto criado com sucesso!');
       }
 
@@ -180,7 +219,9 @@ export default function ProductsManagement() {
 
     try {
       if (editingCategory) {
-        await categoriesAPI.update(editingCategory.slug, categoryForm);
+        // O formulário sempre fornece nome, slug e descrição completos, então
+        // usamos PUT (substituição total) em vez de PATCH.
+        await categoriesAPI.replace(editingCategory.slug, categoryForm);
         toast.success('Categoria atualizada com sucesso!');
       } else {
         await categoriesAPI.create(categoryForm);
@@ -275,13 +316,19 @@ export default function ProductsManagement() {
                     <TableCell>{product.category_detail?.name}</TableCell>
                     <TableCell>{format(product.price)}</TableCell>
                     <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          product.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                        }`}
-                      >
-                        {product.is_active ? 'Ativo' : 'Inativo'}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={product.is_active}
+                          onCheckedChange={() => handleToggleActive(product)}
+                        />
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            product.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          }`}
+                        >
+                          {product.is_active ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="ghost" size="sm" onClick={() => handleOpenProductDialog(product)}>
@@ -457,6 +504,63 @@ export default function ProductsManagement() {
                     </p>
                   )}
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="brand">Marca</Label>
+                  <Input
+                    id="brand"
+                    value={productForm.brand}
+                    onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="color">Cor</Label>
+                  <Input
+                    id="color"
+                    value={productForm.color}
+                    onChange={(e) => setProductForm({ ...productForm, color: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="material">Material</Label>
+                  <Input
+                    id="material"
+                    value={productForm.material}
+                    onChange={(e) => setProductForm({ ...productForm, material: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="weight">Peso</Label>
+                  <Input
+                    id="weight"
+                    placeholder="ex: 500g"
+                    value={productForm.weight}
+                    onChange={(e) => setProductForm({ ...productForm, weight: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="dimensions">Dimensões</Label>
+                <Input
+                  id="dimensions"
+                  placeholder="ex: 30x20x10cm"
+                  value={productForm.dimensions}
+                  onChange={(e) => setProductForm({ ...productForm, dimensions: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="specifications">Especificações (JSON, opcional)</Label>
+                <Textarea
+                  id="specifications"
+                  placeholder='{"voltagem": "220V", "garantia": "12 meses"}'
+                  value={productForm.specifications}
+                  onChange={(e) => setProductForm({ ...productForm, specifications: e.target.value })}
+                  className="font-mono text-sm"
+                />
               </div>
             </div>
             <DialogFooter>

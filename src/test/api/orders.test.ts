@@ -58,4 +58,37 @@ describe('ordersAPI', () => {
     const order = await ordersAPI.cancel(1);
     expect(order.status).toBe('cancelled');
   });
+
+  it('checkDelivery envia {product_id, postal_code, quantity} para /orders/delivery-check/', async () => {
+    let capturedBody: any = null;
+    server.use(
+      http.post('*/api/orders/delivery-check/', async ({ request }) => {
+        capturedBody = await request.json();
+        return HttpResponse.json({
+          available: true,
+          product_id: capturedBody.product_id,
+          postal_code: capturedBody.postal_code,
+          region: 'Luanda',
+          estimated_days: 2,
+          shipping_cost: 1000,
+          quantity: capturedBody.quantity,
+        });
+      })
+    );
+
+    const result = await ordersAPI.checkDelivery({ product_id: 10, postal_code: '01001-SP', quantity: 2 });
+    expect(capturedBody).toEqual({ product_id: 10, postal_code: '01001-SP', quantity: 2 });
+    expect(result.available).toBe(true);
+    expect(result.region).toBe('Luanda');
+  });
+
+  it('checkDelivery propaga erro 400 quando faltam campos obrigatórios', async () => {
+    server.use(
+      http.post('*/api/orders/delivery-check/', () =>
+        HttpResponse.json({ error: 'product_id and postal_code are required' }, { status: 400 })
+      )
+    );
+
+    await expect(ordersAPI.checkDelivery({ product_id: 0, postal_code: '' })).rejects.toThrow();
+  });
 });

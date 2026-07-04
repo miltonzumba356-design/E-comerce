@@ -15,7 +15,9 @@ const isLowStock = (stock: Stock): boolean => {
 
 export default function InventoryManagement() {
   const [stocks, setStocks] = useState<Stock[]>([]);
+  const [lowStockOnly, setLowStockOnly] = useState<Stock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingLowStock, setIsLoadingLowStock] = useState(false);
   const [editValues, setEditValues] = useState<Record<number, string>>({});
   const [showLowStockOnly, setShowLowStockOnly] = useState(false);
 
@@ -35,6 +37,22 @@ export default function InventoryManagement() {
     }
   };
 
+  const handleToggleLowStockOnly = async () => {
+    const next = !showLowStockOnly;
+    setShowLowStockOnly(next);
+    if (next && lowStockOnly.length === 0) {
+      setIsLoadingLowStock(true);
+      try {
+        const data = await inventoryAPI.getLowStock();
+        setLowStockOnly(data);
+      } catch (error) {
+        toast.error('Erro ao carregar estoque baixo');
+      } finally {
+        setIsLoadingLowStock(false);
+      }
+    }
+  };
+
   const handleAdjust = async (id: number) => {
     const value = editValues[id];
     if (value === undefined || value === '') return;
@@ -48,12 +66,15 @@ export default function InventoryManagement() {
         return next;
       });
       loadStocks();
+      if (showLowStockOnly) {
+        inventoryAPI.getLowStock().then(setLowStockOnly).catch(() => {});
+      }
     } catch (error: any) {
       toast.error(error.message || 'Erro ao ajustar estoque');
     }
   };
 
-  const visibleStocks = showLowStockOnly ? stocks.filter(isLowStock) : stocks;
+  const visibleStocks = showLowStockOnly ? lowStockOnly : stocks;
 
   if (isLoading) {
     return (
@@ -72,10 +93,15 @@ export default function InventoryManagement() {
         </div>
         <Button
           variant={showLowStockOnly ? 'default' : 'outline'}
-          onClick={() => setShowLowStockOnly((v) => !v)}
+          onClick={handleToggleLowStockOnly}
+          disabled={isLoadingLowStock}
         >
           <AlertTriangle className="mr-2 h-4 w-4" />
-          {showLowStockOnly ? 'Mostrando estoque baixo' : 'Mostrar apenas estoque baixo'}
+          {isLoadingLowStock
+            ? 'Carregando...'
+            : showLowStockOnly
+              ? 'Mostrando estoque baixo'
+              : 'Mostrar apenas estoque baixo'}
         </Button>
       </div>
 

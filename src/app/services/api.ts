@@ -35,6 +35,12 @@ export interface Product {
   slug: string;
   description?: string;
   price: string;
+  brand?: string;
+  color?: string;
+  material?: string;
+  weight?: string;
+  dimensions?: string;
+  specifications?: Record<string, unknown> | null;
   image?: string | null;
   is_active: boolean;
   created_at: string;
@@ -108,9 +114,59 @@ export interface Paginated<T> {
   results: T[];
 }
 
-// Relatórios: o spec não documenta o corpo da resposta ("No response body").
-// Tipar como registro solto e consumir a UI de forma defensiva.
-export type ReportData = Record<string, unknown>;
+// ========== RELATÓRIOS (schemas agora tipados no spec) ==========
+
+export interface DashboardStats {
+  total_products: number;
+  total_orders: number;
+  total_customers: number;
+  total_revenue: number;
+  pending_orders: number;
+  low_stock_items: number;
+}
+
+export interface BestSeller {
+  product_name: string;
+  product__id: number;
+  total_sold: number;
+  total_revenue: number;
+}
+
+export interface MonthlyRevenue {
+  month: string;
+  revenue: number;
+  orders: number;
+}
+
+export interface OrderStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface SalesReport {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
+// Verificação de entrega
+export interface DeliveryCheckRequest {
+  product_id: number;
+  postal_code: string;
+  quantity?: number;
+}
+
+export interface DeliveryCheckResponse {
+  available: boolean;
+  product_id: number;
+  postal_code: string;
+  region?: string;
+  estimated_days?: number;
+  estimated_date?: string;
+  shipping_cost?: number;
+  quantity?: number;
+  error?: string;
+}
 
 // ========== TIPOS DE REQUISIÇÃO ==========
 
@@ -304,7 +360,8 @@ const buildProductFormData = (data: Partial<Product>, imageFile: File): FormData
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {
     if (value === undefined || value === null || key === 'image') return;
-    formData.append(key, String(value));
+    const serialized = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    formData.append(key, serialized);
   });
   formData.append('image', imageFile);
   return formData;
@@ -343,6 +400,18 @@ export const productsAPI = {
     });
   },
 
+  // Substituição completa (PUT) — usada quando o formulário já fornece todos os
+  // campos editáveis do produto, em vez de um PATCH parcial.
+  replace: async (slug: string, data: Partial<Product>, imageFile?: File | null): Promise<Product> => {
+    if (imageFile) {
+      return apiRequest(`/products/${slug}/`, { method: 'PUT', body: buildProductFormData(data, imageFile) });
+    }
+    return apiRequest(`/products/${slug}/`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
   delete: async (slug: string): Promise<void> => {
     return apiRequest(`/products/${slug}/`, { method: 'DELETE' });
   },
@@ -369,6 +438,15 @@ export const categoriesAPI = {
   update: async (slug: string, data: Partial<Category>): Promise<Category> => {
     return apiRequest(`/products/categories/${slug}/`, {
       method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Substituição completa (PUT) — usada quando o formulário fornece nome, slug e
+  // descrição de uma vez (edição completa da categoria).
+  replace: async (slug: string, data: Partial<Category>): Promise<Category> => {
+    return apiRequest(`/products/categories/${slug}/`, {
+      method: 'PUT',
       body: JSON.stringify(data),
     });
   },
@@ -445,6 +523,15 @@ export const ordersAPI = {
       body: JSON.stringify({ status }),
     });
   },
+
+  // Verifica disponibilidade/prazo/custo de entrega para um produto + código postal.
+  // Acesso anônimo permitido pelo spec, mas funciona igual autenticado.
+  checkDelivery: async (data: DeliveryCheckRequest): Promise<DeliveryCheckResponse> => {
+    return apiRequest('/orders/delivery-check/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 // ========== PAGAMENTOS ==========
@@ -476,8 +563,14 @@ export const inventoryAPI = {
     return apiRequest(`/inventory/${id}/`);
   },
 
-  getLowStock: async (): Promise<Stock> => {
-    return apiRequest('/inventory/low_stock/');
+  // O schema documenta a resposta como um único Stock, mas o backend provavelmente
+  // retorna uma lista (é uma listagem de "produtos com estoque baixo") — aceita os
+  // três formatos possíveis de forma defensiva.
+  getLowStock: async (): Promise<Stock[]> => {
+    const response = await apiRequest<Stock | Stock[] | Paginated<Stock>>('/inventory/low_stock/');
+    if (Array.isArray(response)) return response;
+    if (response && 'results' in response) return response.results;
+    return response ? [response] : [];
   },
 
   adjust: async (id: number, quantity: number): Promise<Stock> => {
@@ -491,24 +584,29 @@ export const inventoryAPI = {
 // ========== RELATÓRIOS (ADMIN) ==========
 
 export const reportsAPI = {
-  getDashboard: async (): Promise<ReportData> => {
+  // GET /reports/ — lista os endpoints de relatórios disponíveis (shape genérico).
+  list: async (): Promise<unknown> => {
+    return apiRequest('/reports/');
+  },
+
+  getDashboard: async (): Promise<DashboardStats> => {
     return apiRequest('/reports/dashboard/');
   },
 
-  getSales: async (): Promise<ReportData> => {
-    return apiRequest('/reports/sales/');
+  getSales: async (days = 30, page = 1, pageSize = 50): Promise<Paginated<SalesReport>> => {
+    return apiRequest(`/reports/sales/?days=${days}&page=${page}&page_size=${pageSize}`);
   },
 
-  getBestSellers: async (): Promise<ReportData> => {
-    return apiRequest('/reports/best_sellers/');
+  getBestSellers: async (limit = 10, page = 1, pageSize = 50): Promise<Paginated<BestSeller>> => {
+    return apiRequest(`/reports/best_sellers/?limit=${limit}&page=${page}&page_size=${pageSize}`);
   },
 
-  getMonthlyRevenue: async (): Promise<ReportData> => {
-    return apiRequest('/reports/monthly_revenue/');
+  getMonthlyRevenue: async (months = 6, page = 1, pageSize = 50): Promise<Paginated<MonthlyRevenue>> => {
+    return apiRequest(`/reports/monthly_revenue/?months=${months}&page=${page}&page_size=${pageSize}`);
   },
 
-  getOrdersByStatus: async (): Promise<ReportData> => {
-    return apiRequest('/reports/orders_by_status/');
+  getOrdersByStatus: async (page = 1, pageSize = 50): Promise<Paginated<OrderStatusCount>> => {
+    return apiRequest(`/reports/orders_by_status/?page=${page}&page_size=${pageSize}`);
   },
 };
 

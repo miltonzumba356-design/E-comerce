@@ -133,6 +133,11 @@ export const handlers = [
     return HttpResponse.json(product);
   }),
 
+  http.put('*/api/products/:slug/', ({ request }) => {
+    if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
+    return HttpResponse.json(product);
+  }),
+
   http.delete('*/api/products/:slug/', ({ request }) => {
     if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
     return new HttpResponse(null, { status: 204 });
@@ -145,6 +150,11 @@ export const handlers = [
   }),
 
   http.patch('*/api/products/categories/:slug/', ({ request }) => {
+    if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
+    return HttpResponse.json(category);
+  }),
+
+  http.put('*/api/products/categories/:slug/', ({ request }) => {
     if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
     return HttpResponse.json(category);
   }),
@@ -296,6 +306,23 @@ export const handlers = [
     });
   }),
 
+  http.post('*/api/orders/delivery-check/', async ({ request }) => {
+    const body = (await request.json()) as { product_id: number; postal_code: string; quantity?: number };
+    if (!body.product_id || !body.postal_code) {
+      return HttpResponse.json({ error: 'product_id and postal_code are required' }, { status: 400 });
+    }
+    return HttpResponse.json({
+      available: true,
+      product_id: body.product_id,
+      postal_code: body.postal_code,
+      region: 'Luanda',
+      estimated_days: 3,
+      estimated_date: '2026-07-10',
+      shipping_cost: 2500,
+      quantity: body.quantity ?? 1,
+    });
+  }),
+
   // ---------- PAYMENTS ----------
   http.post('*/api/payments/process/', async ({ request }) => {
     if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
@@ -350,19 +377,25 @@ export const handlers = [
 
   // 'low_stock/' precisa vir antes de '/api/inventory/:id/' pelo mesmo motivo
   // documentado acima em PRODUCTS — senão ':id' captura o literal "low_stock".
+  // O schema documenta a resposta como um único Stock, mas na prática é uma
+  // listagem — o mock retorna paginado, e o cliente aceita os dois formatos.
   http.get('*/api/inventory/low_stock/', ({ request }) => {
     if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
-    return HttpResponse.json({
-      id: 2,
-      product: 10,
-      product_detail: product,
-      quantity: 2,
-      reserved: 0,
-      available: '2',
-      low_stock_threshold: 5,
-      is_low_stock: 'True',
-      updated_at: '2026-01-01T00:00:00Z',
-    });
+    return HttpResponse.json(
+      paginated([
+        {
+          id: 2,
+          product: 10,
+          product_detail: product,
+          quantity: 2,
+          reserved: 0,
+          available: '2',
+          low_stock_threshold: 5,
+          is_low_stock: 'True',
+          updated_at: '2026-01-01T00:00:00Z',
+        },
+      ])
+    );
   }),
 
   http.get('*/api/inventory/:id/', ({ request, params }) => {
@@ -396,25 +429,44 @@ export const handlers = [
     });
   }),
 
-  // ---------- REPORTS (schema não documentado no spec) ----------
+  // ---------- REPORTS (schemas tipados) ----------
+  // '/reports/' (lista de endpoints) não documenta schema — shape genérico.
+  http.get('*/api/reports/', ({ request }) => {
+    if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
+    return HttpResponse.json(['dashboard', 'sales', 'best_sellers', 'monthly_revenue', 'orders_by_status']);
+  }),
+
   http.get('*/api/reports/dashboard/', ({ request }) => {
     if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
-    return HttpResponse.json({ total_revenue: '100000.00', total_orders: 5, total_customers: 3, pending_orders: 1 });
+    return HttpResponse.json({
+      total_products: 12,
+      total_orders: 5,
+      total_customers: 3,
+      total_revenue: 100000.0,
+      pending_orders: 1,
+      low_stock_items: 2,
+    });
   }),
+
   http.get('*/api/reports/sales/', ({ request }) => {
     if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
-    return HttpResponse.json({ total: '100000.00' });
+    return HttpResponse.json(paginated([{ date: '2026-07-01', revenue: 50000.0, orders: 2 }]));
   }),
+
   http.get('*/api/reports/best_sellers/', ({ request }) => {
     if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
-    return HttpResponse.json([{ product: 'Vestido Elegante', total_sold: 10 }]);
+    return HttpResponse.json(
+      paginated([{ product_name: 'Vestido Elegante', product__id: 10, total_sold: 10, total_revenue: 250000.0 }])
+    );
   }),
+
   http.get('*/api/reports/monthly_revenue/', ({ request }) => {
     if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
-    return HttpResponse.json([{ month: '2026-01', revenue: '100000.00' }]);
+    return HttpResponse.json(paginated([{ month: 'jul/26', revenue: 100000.0, orders: 5 }]));
   }),
+
   http.get('*/api/reports/orders_by_status/', ({ request }) => {
     if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
-    return HttpResponse.json({ pending: 1, delivered: 4 });
+    return HttpResponse.json(paginated([{ status: 'pending', count: 1 }, { status: 'delivered', count: 4 }]));
   }),
 ];

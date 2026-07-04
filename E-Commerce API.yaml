@@ -8,6 +8,8 @@ paths:
   /api/auth/:
     post:
       operationId: auth_create
+      description: Cria uma nova conta de usuário com os dados fornecidos.
+      summary: Registrar novo usuário
       tags:
       - auth
       requestBody:
@@ -34,6 +36,8 @@ paths:
   /api/auth/admin/users/:
     get:
       operationId: auth_admin_users_list
+      description: Retorna uma lista paginada de todos os usuários (apenas para administradores).
+      summary: Listar usuários
       parameters:
       - name: page
         required: false
@@ -61,6 +65,8 @@ paths:
   /api/auth/admin/users/{id}/:
     get:
       operationId: auth_admin_users_retrieve
+      description: Retorna os detalhes de um usuário específico.
+      summary: Obter detalhes do usuário
       parameters:
       - in: path
         name: id
@@ -81,6 +87,9 @@ paths:
   /api/auth/admin/users/{id}/change-role/:
     patch:
       operationId: auth_admin_users_change_role_partial_update
+      description: Altera a função/permissão de um usuário específico (apenas para
+        administradores).
+      summary: Alterar função do usuário
       parameters:
       - in: path
         name: id
@@ -112,6 +121,9 @@ paths:
   /api/auth/login/:
     post:
       operationId: auth_login_create
+      description: Autentica o usuário com credenciais (email/senha) e retorna os
+        tokens JWT.
+      summary: Autenticar usuário
       tags:
       - auth
       requestBody:
@@ -139,6 +151,8 @@ paths:
   /api/auth/me/:
     get:
       operationId: auth_me_retrieve
+      description: Retorna os dados do usuário atualmente autenticado.
+      summary: Obter dados do usuário logado
       tags:
       - auth
       security:
@@ -153,6 +167,8 @@ paths:
   /api/auth/me_update/:
     patch:
       operationId: auth_me_update_partial_update
+      description: Atualiza parcialmente os dados do usuário autenticado.
+      summary: Atualizar dados do usuário logado
       tags:
       - auth
       requestBody:
@@ -205,6 +221,8 @@ paths:
   /api/auth/register/:
     post:
       operationId: auth_register_create
+      description: Cria uma nova conta de usuário e retorna os tokens de acesso.
+      summary: Registrar novo usuário
       tags:
       - auth
       requestBody:
@@ -232,6 +250,8 @@ paths:
   /api/cart/:
     get:
       operationId: cart_list
+      description: Retorna o carrinho atual do usuário autenticado com todos os itens.
+      summary: Visualizar carrinho
       parameters:
       - name: page
         required: false
@@ -259,6 +279,8 @@ paths:
   /api/cart/{id}/remove/:
     delete:
       operationId: cart_remove_destroy
+      description: Remove um item específico do carrinho do usuário.
+      summary: Remover item do carrinho
       parameters:
       - in: path
         name: id
@@ -275,6 +297,8 @@ paths:
   /api/cart/{id}/update_quantity/:
     patch:
       operationId: cart_update_quantity_partial_update
+      description: Atualiza a quantidade de um item específico no carrinho.
+      summary: Atualizar quantidade do item
       parameters:
       - in: path
         name: id
@@ -306,6 +330,8 @@ paths:
   /api/cart/add/:
     post:
       operationId: cart_add_create
+      description: Adiciona um produto ao carrinho do usuário com a quantidade especificada.
+      summary: Adicionar item ao carrinho
       tags:
       - cart
       requestBody:
@@ -331,6 +357,8 @@ paths:
   /api/cart/clear/:
     delete:
       operationId: cart_clear_destroy
+      description: Remove todos os itens do carrinho do usuário autenticado.
+      summary: Limpar carrinho
       tags:
       - cart
       security:
@@ -341,6 +369,8 @@ paths:
   /api/inventory/:
     get:
       operationId: inventory_list
+      description: Retorna uma lista paginada de todos os registros de estoque.
+      summary: Listar estoque
       parameters:
       - name: page
         required: false
@@ -368,6 +398,8 @@ paths:
   /api/inventory/{id}/:
     get:
       operationId: inventory_retrieve
+      description: Retorna os detalhes de um registro de estoque específico.
+      summary: Obter detalhes do estoque
       parameters:
       - in: path
         name: id
@@ -389,6 +421,8 @@ paths:
   /api/inventory/{id}/adjust/:
     patch:
       operationId: inventory_adjust_partial_update
+      description: Ajusta a quantidade em estoque de um produto específico.
+      summary: Ajustar quantidade do estoque
       parameters:
       - in: path
         name: id
@@ -421,6 +455,9 @@ paths:
   /api/inventory/low_stock/:
     get:
       operationId: inventory_low_stock_retrieve
+      description: Retorna uma lista paginada de produtos cuja quantidade está abaixo
+        do limite mínimo definido.
+      summary: Listar produtos com estoque baixo
       tags:
       - inventory
       security:
@@ -435,6 +472,9 @@ paths:
   /api/orders/:
     get:
       operationId: orders_list
+      description: Retorna uma lista paginada de pedidos do usuário ou todos os pedidos
+        para administradores.
+      summary: Listar pedidos
       parameters:
       - name: page
         required: false
@@ -461,6 +501,8 @@ paths:
           description: ''
     post:
       operationId: orders_create
+      description: Cria um novo pedido a partir dos itens do carrinho do usuário.
+      summary: Criar novo pedido
       tags:
       - orders
       requestBody:
@@ -487,6 +529,8 @@ paths:
   /api/orders/{id}/:
     get:
       operationId: orders_retrieve
+      description: Retorna os detalhes de um pedido específico.
+      summary: Obter detalhes do pedido
       parameters:
       - in: path
         name: id
@@ -507,6 +551,9 @@ paths:
   /api/orders/{id}/cancel/:
     post:
       operationId: orders_cancel_create
+      description: Cancela um pedido existente desde que o status atual permita o
+        cancelamento.
+      summary: Cancelar pedido
       parameters:
       - in: path
         name: id
@@ -539,6 +586,8 @@ paths:
   /api/orders/{id}/status/:
     patch:
       operationId: orders_status_partial_update
+      description: Atualiza o status de um pedido (apenas para administradores).
+      summary: Atualizar status do pedido
       parameters:
       - in: path
         name: id
@@ -567,9 +616,80 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
           description: ''
+  /api/orders/delivery-check/:
+    post:
+      operationId: orders_delivery_check_create
+      description: Check if a product can be delivered to a postal code region.
+      summary: Check delivery availability
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: {}
+            examples:
+              RequestExample:
+                value:
+                  product_id: 1
+                  postal_code: 01001-SP
+                  quantity: 2
+                summary: Request example
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: {}
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: {}
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                RequestExample:
+                  value:
+                    product_id: 1
+                    postal_code: 01001-SP
+                    quantity: 2
+                  summary: Request example
+                SuccessResponse:
+                  value:
+                    available: true
+                    product_id: 1
+                    postal_code: 01001-SP
+                    region: São Paulo
+                    estimated_days: 3
+                    estimated_date: '2026-07-01'
+                    shipping_cost: 15.0
+                    quantity: 2
+                  summary: Success response
+          description: Delivery info
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                ErrorResponse:
+                  value:
+                    error: product_id and postal_code are required
+                  summary: Error response
+          description: Missing required fields
   /api/payments/{id}/refund/:
     post:
       operationId: payments_refund_create
+      description: Solicita o reembolso de um pagamento existente (apenas para administradores).
+      summary: Reembolsar pagamento
       parameters:
       - in: path
         name: id
@@ -603,6 +723,9 @@ paths:
   /api/payments/process/:
     post:
       operationId: payments_process_create
+      description: Processa o pagamento de um pedido utilizando o método de pagamento
+        informado.
+      summary: Processar pagamento
       tags:
       - payments
       requestBody:
@@ -629,6 +752,8 @@ paths:
   /api/products/:
     get:
       operationId: products_list
+      description: Retorna uma lista paginada de todos os produtos ativos.
+      summary: Listar produtos
       parameters:
       - name: page
         required: false
@@ -655,6 +780,8 @@ paths:
           description: ''
     post:
       operationId: products_create
+      description: Cria um novo produto com os dados fornecidos.
+      summary: Criar novo produto
       tags:
       - products
       requestBody:
@@ -681,6 +808,8 @@ paths:
   /api/products/{slug}/:
     get:
       operationId: products_retrieve
+      description: Retorna os detalhes de um produto específico pelo slug.
+      summary: Obter detalhes do produto
       parameters:
       - in: path
         name: slug
@@ -700,6 +829,8 @@ paths:
           description: ''
     put:
       operationId: products_update
+      description: Atualiza todos os dados de um produto existente.
+      summary: Atualizar produto
       parameters:
       - in: path
         name: slug
@@ -731,6 +862,8 @@ paths:
           description: ''
     patch:
       operationId: products_partial_update
+      description: Atualiza parcialmente os dados de um produto existente.
+      summary: Atualizar parcialmente produto
       parameters:
       - in: path
         name: slug
@@ -761,6 +894,8 @@ paths:
           description: ''
     delete:
       operationId: products_destroy
+      description: Remove um produto do sistema (desativação lógica).
+      summary: Remover produto
       parameters:
       - in: path
         name: slug
@@ -777,6 +912,9 @@ paths:
   /api/products/by_category/:
     get:
       operationId: products_by_category_retrieve
+      description: Retorna uma lista paginada de produtos filtrados pela categoria
+        informada via parâmetro 'slug'.
+      summary: Listar produtos por categoria
       tags:
       - products
       security:
@@ -791,6 +929,8 @@ paths:
   /api/products/categories/:
     get:
       operationId: products_categories_list
+      description: Retorna uma lista paginada de todas as categorias disponíveis.
+      summary: Listar categorias
       parameters:
       - name: page
         required: false
@@ -817,6 +957,8 @@ paths:
           description: ''
     post:
       operationId: products_categories_create
+      description: Cria uma nova categoria com os dados fornecidos.
+      summary: Criar nova categoria
       tags:
       - products
       requestBody:
@@ -843,6 +985,8 @@ paths:
   /api/products/categories/{slug}/:
     get:
       operationId: products_categories_retrieve
+      description: Retorna os detalhes de uma categoria específica pelo slug.
+      summary: Obter detalhes da categoria
       parameters:
       - in: path
         name: slug
@@ -862,6 +1006,8 @@ paths:
           description: ''
     put:
       operationId: products_categories_update
+      description: Atualiza todos os dados de uma categoria existente.
+      summary: Atualizar categoria
       parameters:
       - in: path
         name: slug
@@ -893,6 +1039,8 @@ paths:
           description: ''
     patch:
       operationId: products_categories_partial_update
+      description: Atualiza parcialmente os dados de uma categoria existente.
+      summary: Atualizar parcialmente categoria
       parameters:
       - in: path
         name: slug
@@ -923,6 +1071,8 @@ paths:
           description: ''
     delete:
       operationId: products_categories_destroy
+      description: Remove uma categoria do sistema.
+      summary: Remover categoria
       parameters:
       - in: path
         name: slug
@@ -938,66 +1088,201 @@ paths:
           description: No response body
   /api/reports/:
     get:
-      operationId: reports_retrieve
+      operationId: reports_list
+      description: Retorna uma lista dos endpoints de relatórios disponíveis.
+      summary: Listar endpoints de relatórios
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - reports
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          description: Lista de endpoints
   /api/reports/best_sellers/:
     get:
-      operationId: reports_best_sellers_retrieve
+      operationId: reports_best_sellers_list
+      description: 'Retorna uma lista dos produtos mais vendidos com limite configurável
+        (padrão: 10).'
+      summary: Obter produtos mais vendidos
+      parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 10
+        description: Quantidade máxima de produtos
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - reports
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBestSellerList'
+          description: ''
   /api/reports/dashboard/:
     get:
       operationId: reports_dashboard_retrieve
+      description: Retorna os dados resumidos do dashboard com métricas principais.
+      summary: Obter dados do dashboard
       tags:
       - reports
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+          description: ''
   /api/reports/monthly_revenue/:
     get:
-      operationId: reports_monthly_revenue_retrieve
+      operationId: reports_monthly_revenue_list
+      description: 'Retorna a receita mensal com base no número de meses informado
+        (padrão: 6).'
+      summary: Obter receita mensal
+      parameters:
+      - in: query
+        name: months
+        schema:
+          type: integer
+          default: 6
+        description: Número de meses para o relatório
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - reports
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMonthlyRevenueList'
+          description: ''
   /api/reports/orders_by_status/:
     get:
-      operationId: reports_orders_by_status_retrieve
+      operationId: reports_orders_by_status_list
+      description: Retorna a quantidade de pedidos agrupados por status.
+      summary: Obter pedidos por status
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - reports
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrderStatusList'
+          description: ''
   /api/reports/sales/:
     get:
-      operationId: reports_sales_retrieve
+      operationId: reports_sales_list
+      description: 'Retorna um relatório de vendas com base no período em dias informado
+        (padrão: 30).'
+      summary: Obter relatório de vendas
+      parameters:
+      - in: query
+        name: days
+        schema:
+          type: integer
+          default: 30
+        description: Número de dias para o relatório
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - reports
       security:
       - jwtAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSalesReportList'
+          description: ''
 components:
   schemas:
+    BestSeller:
+      type: object
+      properties:
+        product_name:
+          type: string
+        product__id:
+          type: integer
+        total_sold:
+          type: integer
+        total_revenue:
+          type: number
+          format: double
+      required:
+      - product__id
+      - product_name
+      - total_revenue
+      - total_sold
     Cart:
       type: object
       properties:
@@ -1071,6 +1356,29 @@ components:
       - id
       - name
       - slug
+    Dashboard:
+      type: object
+      properties:
+        total_products:
+          type: integer
+        total_orders:
+          type: integer
+        total_customers:
+          type: integer
+        total_revenue:
+          type: number
+          format: double
+        pending_orders:
+          type: integer
+        low_stock_items:
+          type: integer
+      required:
+      - low_stock_items
+      - pending_orders
+      - total_customers
+      - total_orders
+      - total_products
+      - total_revenue
     Login:
       type: object
       properties:
@@ -1083,6 +1391,20 @@ components:
       required:
       - email
       - password
+    MonthlyRevenue:
+      type: object
+      properties:
+        month:
+          type: string
+        revenue:
+          type: number
+          format: double
+        orders:
+          type: integer
+      required:
+      - month
+      - orders
+      - revenue
     Order:
       type: object
       properties:
@@ -1154,6 +1476,16 @@ components:
       - product_price
       - quantity
       - subtotal
+    OrderStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        count:
+          type: integer
+      required:
+      - count
+      - status
     OrderStatusEnum:
       enum:
       - pending
@@ -1168,6 +1500,29 @@ components:
         * `shipped` - Shipped
         * `delivered` - Delivered
         * `cancelled` - Cancelled
+    PaginatedBestSellerList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BestSeller'
     PaginatedCartList:
       type: object
       required:
@@ -1214,6 +1569,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Category'
+    PaginatedMonthlyRevenueList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MonthlyRevenue'
     PaginatedOrderList:
       type: object
       required:
@@ -1237,6 +1615,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Order'
+    PaginatedOrderStatusList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderStatus'
     PaginatedProductList:
       type: object
       required:
@@ -1260,6 +1661,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Product'
+    PaginatedSalesReportList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SalesReport'
     PaginatedStockList:
       type: object
       required:
@@ -1401,9 +1825,25 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        brand:
+          type: string
+          maxLength: 100
+        color:
+          type: string
+          maxLength: 50
+        material:
+          type: string
+          maxLength: 100
+        weight:
+          type: string
+          maxLength: 50
+        dimensions:
+          type: string
+          maxLength: 100
+        specifications: {}
         image:
           type: string
-          nullable: true
+          format: uri
         is_active:
           type: boolean
         created_at:
@@ -1564,9 +2004,25 @@ components:
           type: string
           format: decimal
           pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        brand:
+          type: string
+          maxLength: 100
+        color:
+          type: string
+          maxLength: 50
+        material:
+          type: string
+          maxLength: 100
+        weight:
+          type: string
+          maxLength: 50
+        dimensions:
+          type: string
+          maxLength: 100
+        specifications: {}
         image:
           type: string
-          nullable: true
+          format: uri
         is_active:
           type: boolean
         created_at:
@@ -1635,6 +2091,20 @@ components:
       description: |-
         * `admin` - Admin
         * `customer` - Customer
+    SalesReport:
+      type: object
+      properties:
+        date:
+          type: string
+        revenue:
+          type: number
+          format: double
+        orders:
+          type: integer
+      required:
+      - date
+      - orders
+      - revenue
     Stock:
       type: object
       properties:

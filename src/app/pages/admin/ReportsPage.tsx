@@ -1,112 +1,76 @@
 import React, { useEffect, useState } from 'react';
-import { reportsAPI, ReportData } from '../../services/api';
+import { reportsAPI, SalesReport, BestSeller } from '../../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from '../../components/ui/chart';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { useCurrency } from '../../hooks/useCurrency';
 
-// O spec (E-Commerce API.yaml) não documenta o corpo de resposta dos relatórios
-// ("No response body"). Renderização defensiva: aceita qualquer shape (objeto,
-// array de objetos, ou primitivo) sem assumir campos específicos.
-type ReportValue = ReportData | ReportData[] | null;
+const salesChartConfig: ChartConfig = {
+  revenue: { label: 'Receita (Kz)', color: '#c96442' },
+};
 
-function humanizeKey(key: string): string {
-  return key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
-}
-
-function formatValue(value: unknown): string {
-  if (value === null || value === undefined) return '-';
-  if (typeof value === 'number') return value.toLocaleString('pt-AO');
-  if (typeof value === 'object') return JSON.stringify(value);
-  return String(value);
-}
-
-function ReportBody({ data }: { data: ReportValue }) {
-  if (data === null) {
-    return <p className="text-sm text-muted-foreground">Não foi possível carregar este relatório.</p>;
+// GET /api/reports/ não documenta um schema de resposta ("Lista de endpoints") —
+// renderização defensiva aceitando qualquer shape (array ou objeto).
+function EndpointsList({ data }: { data: unknown }) {
+  if (data === null || data === undefined) {
+    return <p className="text-sm text-muted-foreground">Não foi possível carregar.</p>;
   }
-
   if (Array.isArray(data)) {
-    if (data.length === 0) {
-      return <p className="text-sm text-muted-foreground">Sem dados disponíveis.</p>;
-    }
-    const columns = Array.from(new Set(data.flatMap((row) => Object.keys(row))));
     return (
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((col) => (
-                <TableHead key={col}>{humanizeKey(col)}</TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((row, idx) => (
-              <TableRow key={idx}>
-                {columns.map((col) => (
-                  <TableCell key={col}>{formatValue(row[col])}</TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
+        {data.map((item, i) => (
+          <li key={i}>{typeof item === 'string' ? item : JSON.stringify(item)}</li>
+        ))}
+      </ul>
     );
   }
-
-  const entries = Object.entries(data);
-  if (entries.length === 0) {
-    return <p className="text-sm text-muted-foreground">Sem dados disponíveis.</p>;
+  if (typeof data === 'object') {
+    return (
+      <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
+        {Object.entries(data as Record<string, unknown>).map(([key, value]) => (
+          <li key={key}>
+            <span className="font-medium text-foreground">{key}</span>: {String(value)}
+          </li>
+        ))}
+      </ul>
+    );
   }
-
-  return (
-    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {entries.map(([key, value]) => (
-        <div key={key} className="flex justify-between border-b pb-2">
-          <dt className="text-muted-foreground">{humanizeKey(key)}</dt>
-          <dd className="font-medium text-right">{formatValue(value)}</dd>
-        </div>
-      ))}
-    </dl>
-  );
+  return <p className="text-sm text-muted-foreground">{String(data)}</p>;
 }
 
-const REPORTS: { key: string; title: string; fetcher: () => Promise<ReportData> }[] = [
-  { key: 'sales', title: 'Vendas', fetcher: reportsAPI.getSales },
-  { key: 'best_sellers', title: 'Mais Vendidos', fetcher: reportsAPI.getBestSellers },
-  { key: 'monthly_revenue', title: 'Receita Mensal', fetcher: reportsAPI.getMonthlyRevenue },
-  { key: 'orders_by_status', title: 'Pedidos por Status', fetcher: reportsAPI.getOrdersByStatus },
-];
-
 export default function ReportsPage() {
-  const [data, setData] = useState<Record<string, ReportValue>>({});
+  const { format } = useCurrency();
+  const [days, setDays] = useState('30');
+  const [salesLimit, setSalesLimit] = useState('25');
+  const [sales, setSales] = useState<SalesReport[]>([]);
+  const [bestSellers, setBestSellers] = useState<BestSeller[]>([]);
+  const [endpoints, setEndpoints] = useState<unknown>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      const results = await Promise.all(
-        REPORTS.map(async (report) => {
-          try {
-            const value = await report.fetcher();
-            return [report.key, value as ReportValue] as const;
-          } catch (error) {
-            console.error(`Erro ao carregar relatório ${report.key}:`, error);
-            return [report.key, null] as const;
-          }
-        })
-      );
-      setData(Object.fromEntries(results));
-      setIsLoading(false);
-    };
-    load();
+    reportsAPI
+      .list()
+      .then(setEndpoints)
+      .catch(() => setEndpoints(null));
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    setIsLoading(true);
+    reportsAPI
+      .getSales(Number(days))
+      .then((data) => setSales(data.results))
+      .catch(() => setSales([]))
+      .finally(() => setIsLoading(false));
+  }, [days]);
+
+  useEffect(() => {
+    reportsAPI
+      .getBestSellers(Number(salesLimit))
+      .then((data) => setBestSellers(data.results))
+      .catch(() => setBestSellers([]));
+  }, [salesLimit]);
 
   return (
     <div className="space-y-6">
@@ -115,18 +79,118 @@ export default function ReportsPage() {
         <p className="text-muted-foreground">Análises de vendas e desempenho da loja</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {REPORTS.map((report) => (
-          <Card key={report.key}>
-            <CardHeader>
-              <CardTitle>{report.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ReportBody data={data[report.key] ?? null} />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle>Relatório de Vendas</CardTitle>
+          <Select value={days} onValueChange={setDays}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Últimos 7 dias</SelectItem>
+              <SelectItem value="30">Últimos 30 dias</SelectItem>
+              <SelectItem value="90">Últimos 90 dias</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-40">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : sales.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              Sem vendas registradas neste período.
+            </p>
+          ) : (
+            <>
+              <ChartContainer config={salesChartConfig} className="h-64 w-full">
+                <BarChart data={sales}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="date" tickLine={false} axisLine={false} fontSize={12} />
+                  <YAxis tickLine={false} axisLine={false} fontSize={12} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ChartContainer>
+
+              <div className="border rounded-lg overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Pedidos</TableHead>
+                      <TableHead>Receita</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sales.map((row) => (
+                      <TableRow key={row.date}>
+                        <TableCell>{row.date}</TableCell>
+                        <TableCell>{row.orders}</TableCell>
+                        <TableCell>{format(row.revenue)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle>Mais Vendidos</CardTitle>
+          <Select value={salesLimit} onValueChange={setSalesLimit}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">Top 10</SelectItem>
+              <SelectItem value="25">Top 25</SelectItem>
+              <SelectItem value="50">Top 50</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent>
+          {bestSellers.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              Sem vendas registradas ainda.
+            </p>
+          ) : (
+            <div className="border rounded-lg overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>Unidades Vendidas</TableHead>
+                    <TableHead>Receita</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {bestSellers.map((item) => (
+                    <TableRow key={item.product__id}>
+                      <TableCell className="font-medium">{item.product_name}</TableCell>
+                      <TableCell>{item.total_sold}</TableCell>
+                      <TableCell>{format(item.total_revenue)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Endpoints de Relatórios Disponíveis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EndpointsList data={endpoints} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

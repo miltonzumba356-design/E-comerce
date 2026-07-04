@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { ordersAPI, Order, OrderStatusEnum } from '../../services/api';
+import { ordersAPI, paymentsAPI, Order, OrderStatusEnum } from '../../services/api';
 import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Badge } from '../../components/ui/badge';
 import { useCurrency } from '../../hooks/useCurrency';
 import { toast } from 'sonner';
-import { Eye, Package } from 'lucide-react';
+import { Eye, Package, Loader2, RotateCcw } from 'lucide-react';
 
 const STATUS_COLORS: Record<OrderStatusEnum, string> = {
   pending: 'bg-yellow-100 text-yellow-700',
@@ -31,6 +32,9 @@ export default function OrdersManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [refundPaymentId, setRefundPaymentId] = useState('');
+  const [isRefunding, setIsRefunding] = useState(false);
 
   useEffect(() => {
     loadOrders();
@@ -47,6 +51,21 @@ export default function OrdersManagement() {
     }
   };
 
+  const handleOpenOrder = async (order: Order) => {
+    setSelectedOrder(order);
+    setIsDialogOpen(true);
+    setRefundPaymentId('');
+    setIsLoadingDetail(true);
+    try {
+      const fresh = await ordersAPI.getById(order.id);
+      setSelectedOrder(fresh);
+    } catch (error) {
+      // mantém os dados da listagem se a busca individual falhar
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  };
+
   const handleUpdateStatus = async (orderId: number, newStatus: OrderStatusEnum) => {
     try {
       await ordersAPI.updateStatus(orderId, newStatus);
@@ -55,6 +74,25 @@ export default function OrdersManagement() {
       setIsDialogOpen(false);
     } catch (error: any) {
       toast.error(error.message || 'Erro ao atualizar status');
+    }
+  };
+
+  const handleRefund = async () => {
+    const paymentId = parseInt(refundPaymentId, 10);
+    if (!paymentId) {
+      toast.error('Insira o ID do pagamento a ser reembolsado');
+      return;
+    }
+
+    setIsRefunding(true);
+    try {
+      await paymentsAPI.refund(paymentId);
+      toast.success('Reembolso processado com sucesso!');
+      setRefundPaymentId('');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao processar reembolso');
+    } finally {
+      setIsRefunding(false);
     }
   };
 
@@ -102,14 +140,7 @@ export default function OrdersManagement() {
                 <TableCell>{format(order.total)}</TableCell>
                 <TableCell>{getStatusBadge(order.status)}</TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedOrder(order);
-                      setIsDialogOpen(true);
-                    }}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => handleOpenOrder(order)}>
                     <Eye className="h-4 w-4 mr-2" />
                     Ver Detalhes
                   </Button>
@@ -132,7 +163,12 @@ export default function OrdersManagement() {
           <DialogHeader>
             <DialogTitle>Detalhes do Pedido #{selectedOrder?.id}</DialogTitle>
           </DialogHeader>
-          {selectedOrder && (
+          {isLoadingDetail && (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          )}
+          {selectedOrder && !isLoadingDetail && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -190,6 +226,32 @@ export default function OrdersManagement() {
                     <SelectItem value="cancelled">Cancelado</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="border-t pt-4">
+                <p className="text-sm font-medium text-muted-foreground mb-2">
+                  Reembolsar Pagamento
+                </p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  A API não relaciona pagamentos a pedidos diretamente — informe o ID do
+                  pagamento (obtido no momento do processamento) para reembolsar.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    placeholder="ID do pagamento"
+                    value={refundPaymentId}
+                    onChange={(e) => setRefundPaymentId(e.target.value)}
+                  />
+                  <Button variant="outline" onClick={handleRefund} disabled={isRefunding}>
+                    {isRefunding ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                    )}
+                    Reembolsar
+                  </Button>
+                </div>
               </div>
             </div>
           )}

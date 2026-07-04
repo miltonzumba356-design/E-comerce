@@ -74,4 +74,50 @@ describe('productsAPI', () => {
     await productsAPI.create({ name: 'Sem Imagem' });
     expect(capturedContentType).toBe('application/json');
   });
+
+  it('replace usa PUT (substituição completa) e envia os campos novos do produto', async () => {
+    localStorage.setItem('access_token', 'valid-access-token');
+    let capturedMethod = '';
+    let capturedBody: any = null;
+
+    server.use(
+      http.put('*/api/products/:slug/', async ({ request }) => {
+        capturedMethod = request.method;
+        capturedBody = await request.json();
+        return HttpResponse.json({ ...capturedBody, id: 1 });
+      })
+    );
+
+    await productsAPI.replace('vestido-elegante', {
+      name: 'Vestido Atualizado',
+      price: '30000.00',
+      brand: 'GOSEN',
+      color: 'Azul',
+      specifications: { voltagem: '220V' },
+    });
+
+    expect(capturedMethod).toBe('PUT');
+    expect(capturedBody.brand).toBe('GOSEN');
+    expect(capturedBody.specifications).toEqual({ voltagem: '220V' });
+  });
+
+  it('replace com imageFile envia multipart/form-data (upload real na edição completa)', async () => {
+    localStorage.setItem('access_token', 'valid-access-token');
+    let capturedContentType: string | null = null;
+    let capturedMethod = '';
+
+    server.use(
+      http.put('*/api/products/:slug/', ({ request }) => {
+        capturedContentType = request.headers.get('Content-Type');
+        capturedMethod = request.method;
+        return HttpResponse.json({}, { status: 200 });
+      })
+    );
+
+    const file = new File(['x'], 'produto.jpg', { type: 'image/jpeg' });
+    await productsAPI.replace('vestido-elegante', { specifications: { cor: 'azul' } }, file);
+
+    expect(capturedMethod).toBe('PUT');
+    expect(capturedContentType).toMatch(/^multipart\/form-data/);
+  });
 });

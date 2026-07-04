@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
-import { User, LogOut, ShieldCheck, Package, Heart, ShoppingBag, LogIn } from 'lucide-react';
+import { User, LogOut, ShieldCheck, Package, Heart, ShoppingBag, LogIn, Pencil, Loader2, Save, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { useAuth } from '../contexts/AuthContext';
 import { useShop } from './ShopContext';
 import { ordersAPI } from '../services/api';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router';
 
 interface ProfileDialogProps {
@@ -15,10 +19,13 @@ interface ProfileDialogProps {
 }
 
 export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, updateProfile } = useAuth();
   const { favorites, cart } = useShop();
   const navigate = useNavigate();
   const [orderCount, setOrderCount] = useState<number | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editForm, setEditForm] = useState({ first_name: '', last_name: '', phone: '', address: '' });
 
   useEffect(() => {
     if (open && isAuthenticated) {
@@ -27,7 +34,35 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
         .then((data) => setOrderCount(data.count))
         .catch(() => setOrderCount(null));
     }
+    if (!open) {
+      setIsEditing(false);
+    }
   }, [open, isAuthenticated]);
+
+  const handleStartEdit = () => {
+    if (user) {
+      setEditForm({
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        phone: user.phone || '',
+        address: user.address || '',
+      });
+    }
+    setIsEditing(true);
+  };
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      await updateProfile(editForm);
+      toast.success('Perfil atualizado com sucesso!');
+      setIsEditing(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao atualizar perfil');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -101,22 +136,74 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
 
         <div className="flex-1 overflow-y-auto space-y-6">
           {/* Avatar e Informações Básicas */}
-          <div className="flex items-center gap-6 pb-6 border-b">
-            <Avatar className="w-24 h-24 bg-primary">
-              <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <h3 className="text-2xl mb-1">
-                {user.first_name} {user.last_name}
-              </h3>
-              <p className="text-muted-foreground">{user.email}</p>
-              {user.phone && (
-                <p className="text-sm text-muted-foreground mt-1">{user.phone}</p>
-              )}
+          {isEditing ? (
+            <div className="space-y-4 pb-6 border-b">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-first-name">Nome</Label>
+                  <Input
+                    id="edit-first-name"
+                    value={editForm.first_name}
+                    onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-last-name">Sobrenome</Label>
+                  <Input
+                    id="edit-last-name"
+                    value={editForm.last_name}
+                    onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone">Telefone</Label>
+                <Input
+                  id="edit-phone"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  placeholder="+244 923 456 789"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-address">Endereço</Label>
+                <Textarea
+                  id="edit-address"
+                  value={editForm.address}
+                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSaveProfile} disabled={isSaving} className="flex-1">
+                  {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                  Salvar
+                </Button>
+                <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isSaving}>
+                  <X className="h-4 w-4 mr-2" />
+                  Cancelar
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center gap-6 pb-6 border-b">
+              <Avatar className="w-24 h-24 bg-primary">
+                <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <h3 className="text-2xl mb-1">
+                  {user.first_name} {user.last_name}
+                </h3>
+                <p className="text-muted-foreground">{user.email}</p>
+                {user.phone && <p className="text-sm text-muted-foreground mt-1">{user.phone}</p>}
+                {user.address && <p className="text-sm text-muted-foreground mt-1">{user.address}</p>}
+              </div>
+              <Button variant="outline" size="icon" onClick={handleStartEdit} title="Editar perfil">
+                <Pencil className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
 
           {/* Estatísticas */}
           <div className="grid grid-cols-3 gap-4">

@@ -7,11 +7,12 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { MapPin, Phone, Banknote, Landmark, CreditCard, Loader2 } from 'lucide-react';
+import { MapPin, Phone, Banknote, Landmark, CreditCard, Loader2, Truck, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { useShop } from './ShopContext';
-import { ordersAPI, paymentsAPI } from '../services/api';
+import { ordersAPI, paymentsAPI, DeliveryCheckResponse } from '../services/api';
+import { useCurrency } from '../hooks/useCurrency';
 
 interface CheckoutDialogProps {
   open: boolean;
@@ -26,9 +27,14 @@ const PAYMENT_METHODS = [
   { value: 'card', label: 'Cartão', icon: CreditCard },
 ];
 
+interface DeliveryResult extends DeliveryCheckResponse {
+  productName: string;
+}
+
 export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }: CheckoutDialogProps) {
   const { user, isAuthenticated } = useAuth();
-  const { clearCart } = useShop();
+  const { cart, clearCart } = useShop();
+  const { format } = useCurrency();
   const navigate = useNavigate();
 
   const [step, setStep] = useState<'address' | 'payment'>('address');
@@ -37,11 +43,17 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
   const [method, setMethod] = useState('cash_on_delivery');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [postalCode, setPostalCode] = useState('');
+  const [isCheckingDelivery, setIsCheckingDelivery] = useState(false);
+  const [deliveryResults, setDeliveryResults] = useState<DeliveryResult[] | null>(null);
+
   useEffect(() => {
     if (open) {
       setPhone(user?.phone || '');
       setShippingAddress(user?.address || '');
       setStep('address');
+      setDeliveryResults(null);
+      setPostalCode('');
     }
   }, [open, user]);
 
@@ -52,6 +64,33 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
       navigate('/login');
     }
   }, [open, isAuthenticated, navigate, onOpenChange]);
+
+  const handleCheckDelivery = async () => {
+    if (!postalCode.trim()) {
+      toast.error('Insira um código postal');
+      return;
+    }
+    if (cart.length === 0) return;
+
+    setIsCheckingDelivery(true);
+    try {
+      const results = await Promise.all(
+        cart.map(async (line) => {
+          const result = await ordersAPI.checkDelivery({
+            product_id: line.product.id,
+            postal_code: postalCode.trim(),
+            quantity: line.quantity,
+          });
+          return { ...result, productName: line.product.name };
+        })
+      );
+      setDeliveryResults(results);
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao verificar entrega');
+    } finally {
+      setIsCheckingDelivery(false);
+    }
+  };
 
   const validateAddress = () => {
     if (phone.replace(/\D/g, '').length < 9) {
@@ -142,6 +181,51 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
                   className="pl-10 min-h-[90px]"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="postalCode">Verificar disponibilidade de entrega (opcional)</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="postalCode"
+                  placeholder="Código postal, ex: 01001-SP"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                />
+                <Button type="button" variant="outline" onClick={handleCheckDelivery} disabled={isCheckingDelivery}>
+                  {isCheckingDelivery ? <Loader2 className="h-4 w-4 animate-spin" /> : <Truck className="h-4 w-4" />}
+                </Button>
+              </div>
+
+              {deliveryResults && (
+                <div className="space-y-2 pt-2">
+                  {deliveryResults.map((result, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-start gap-2 text-sm p-2 rounded-md ${
+                        result.available ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                      }`}
+                    >
+                      {result.available ? (
+                        <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      ) : (
+                        <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      )}
+                      <div>
+                        <p className="font-medium">{result.productName}</p>
+                        {result.available ? (
+                          <p>
+                            Entrega em {result.region || 'sua região'} — {result.estimated_days} dia(s)
+                            {typeof result.shipping_cost === 'number' && ` — ${format(result.shipping_cost)}`}
+                          </p>
+                        ) : (
+                          <p>{result.error || 'Entrega indisponível para este código postal'}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <Separator />

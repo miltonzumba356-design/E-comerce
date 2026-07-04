@@ -4,7 +4,8 @@ import { ordersAPI, Order, OrderStatusEnum } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { Package, ShoppingBag, User } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Package, ShoppingBag, User, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCurrency } from '../hooks/useCurrency';
 import { Header } from '../components/Header';
@@ -32,6 +33,8 @@ export default function CustomerDashboard() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     loadOrders();
@@ -48,11 +51,45 @@ export default function CustomerDashboard() {
     }
   };
 
+  const handleOpenOrder = async (order: Order) => {
+    setSelectedOrder(order);
+    setIsDialogOpen(true);
+    setIsLoadingDetail(true);
+    try {
+      // Busca os dados mais recentes do pedido em vez de confiar apenas na listagem.
+      const fresh = await ordersAPI.getById(order.id);
+      setSelectedOrder(fresh);
+    } catch (error) {
+      // mantém os dados da listagem se a busca individual falhar
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!selectedOrder) return;
+    if (!confirm('Tem certeza que deseja cancelar este pedido?')) return;
+
+    setIsCancelling(true);
+    try {
+      const cancelled = await ordersAPI.cancel(selectedOrder.id);
+      setSelectedOrder(cancelled);
+      setOrders((prev) => prev.map((o) => (o.id === cancelled.id ? cancelled : o)));
+      toast.success('Pedido cancelado com sucesso!');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao cancelar pedido');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   const getStatusBadge = (status: OrderStatusEnum) => (
     <Badge className={STATUS_COLORS[status] || 'bg-gray-100 text-gray-700'}>
       {STATUS_LABELS[status] || status}
     </Badge>
   );
+
+  const canCancel = (status: OrderStatusEnum) => status === 'pending' || status === 'confirmed';
 
   return (
     <div className="min-h-screen">
@@ -140,10 +177,7 @@ export default function CustomerDashboard() {
                     <div
                       key={order.id}
                       className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setIsDialogOpen(true);
-                      }}
+                      onClick={() => handleOpenOrder(order)}
                     >
                       <div className="flex-1">
                         <div className="flex items-center flex-wrap gap-3 mb-2">
@@ -176,7 +210,12 @@ export default function CustomerDashboard() {
               <DialogHeader>
                 <DialogTitle>Detalhes do Pedido #{selectedOrder?.id}</DialogTitle>
               </DialogHeader>
-              {selectedOrder && (
+              {isLoadingDetail && (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              )}
+              {selectedOrder && !isLoadingDetail && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -227,6 +266,22 @@ export default function CustomerDashboard() {
                       <span>{format(selectedOrder.total)}</span>
                     </div>
                   </div>
+
+                  {canCancel(selectedOrder.status) && (
+                    <Button
+                      variant="outline"
+                      className="w-full text-destructive hover:text-destructive"
+                      onClick={handleCancelOrder}
+                      disabled={isCancelling}
+                    >
+                      {isCancelling ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <XCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Cancelar Pedido
+                    </Button>
+                  )}
                 </div>
               )}
             </DialogContent>
