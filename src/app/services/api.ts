@@ -209,9 +209,12 @@ interface RequestOptions extends RequestInit {
 
 const apiRequest = async <T>(endpoint: string, options: RequestOptions = {}): Promise<T> => {
   const { auth = true, headers, ...rest } = options;
+  const isFormData = rest.body instanceof FormData;
 
   const buildHeaders = (): HeadersInit => {
-    const base: Record<string, string> = { 'Content-Type': 'application/json' };
+    // Ao enviar FormData (upload de arquivo), não define Content-Type manualmente —
+    // o navegador precisa gerar o boundary do multipart/form-data sozinho.
+    const base: Record<string, string> = isFormData ? {} : { 'Content-Type': 'application/json' };
     if (auth) {
       const token = getAccessToken();
       if (token) base['Authorization'] = `Bearer ${token}`;
@@ -297,6 +300,16 @@ export const authAPI = {
 
 // ========== PRODUTOS ==========
 
+const buildProductFormData = (data: Partial<Product>, imageFile: File): FormData => {
+  const formData = new FormData();
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === undefined || value === null || key === 'image') return;
+    formData.append(key, String(value));
+  });
+  formData.append('image', imageFile);
+  return formData;
+};
+
 export const productsAPI = {
   getAll: async (page = 1, pageSize = 50): Promise<Paginated<Product>> => {
     return apiRequest(`/products/?page=${page}&page_size=${pageSize}`, { auth: false });
@@ -310,14 +323,20 @@ export const productsAPI = {
     return apiRequest(`/products/by_category/?category=${encodeURIComponent(categorySlug)}`, { auth: false });
   },
 
-  create: async (data: Partial<Product>): Promise<Product> => {
+  create: async (data: Partial<Product>, imageFile?: File | null): Promise<Product> => {
+    if (imageFile) {
+      return apiRequest('/products/', { method: 'POST', body: buildProductFormData(data, imageFile) });
+    }
     return apiRequest('/products/', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   },
 
-  update: async (slug: string, data: Partial<Product>): Promise<Product> => {
+  update: async (slug: string, data: Partial<Product>, imageFile?: File | null): Promise<Product> => {
+    if (imageFile) {
+      return apiRequest(`/products/${slug}/`, { method: 'PATCH', body: buildProductFormData(data, imageFile) });
+    }
     return apiRequest(`/products/${slug}/`, {
       method: 'PATCH',
       body: JSON.stringify(data),
@@ -398,8 +417,8 @@ export const cartAPI = {
 // ========== PEDIDOS ==========
 
 export const ordersAPI = {
-  getAll: async (page = 1): Promise<Paginated<Order>> => {
-    return apiRequest(`/orders/?page=${page}`);
+  getAll: async (page = 1, pageSize = 100): Promise<Paginated<Order>> => {
+    return apiRequest(`/orders/?page=${page}&page_size=${pageSize}`);
   },
 
   getById: async (id: number): Promise<Order> => {
