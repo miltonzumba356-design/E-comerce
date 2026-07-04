@@ -7,6 +7,7 @@ import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Mail, Lock, User, Phone, UserCircle } from 'lucide-react';
+import { Logo } from '../components/Logo';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -85,9 +86,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-3xl font-bold text-primary-foreground">I</span>
-            </div>
+            <Logo size={80} showName={false} />
           </div>
           <CardTitle className="text-2xl text-center">Criar conta</CardTitle>
           <CardDescription className="text-center">

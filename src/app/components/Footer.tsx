@@ -7,9 +7,9 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* About */}
           <div>
-            <h3 className="mb-4">INCLUSIVA</h3>
+            <h3 className="mb-4">GOSEN</h3>
             <p className="text-gray-600 text-sm">
-              Moda que celebra a diversidade e promove a inclusão. Roupas para todos os corpos, todos os estilos.
+              Uma loja completa com produtos para todos os gostos e ocasiões, com foco na diversidade e inclusão.
             </p>
           </div>
 
@@ -57,7 +57,7 @@ export function Footer() {
 
         {/* Bottom */}
         <div className="border-t pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-600">
-          <p>© 2025 Inclusiva. Todos os direitos reservados.</p>
+          <p>© 2026 GOSEN. Todos os direitos reservados.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-black">Política de Privacidade</a>
             <a href="#" className="hover:text-black">Termos de Uso</a>

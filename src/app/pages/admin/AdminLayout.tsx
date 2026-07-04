@@ -14,6 +14,7 @@ import {
   Boxes,
   Menu,
 } from 'lucide-react';
+import { Logo } from '../../components/Logo';
 
 const navItems = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -37,12 +38,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center border-b px-6">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-lg font-bold text-primary-foreground">I</span>
-          </div>
-          <span className="text-xl font-bold">INCLUSIVA Admin</span>
-        </div>
+        <Logo size={32} nameClassName="text-xl font-bold" />
+        <span className="text-xl font-bold ml-1">Admin</span>
       </div>
 
       <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
@@ -114,11 +111,9 @@ export default function AdminLayout() {
 
       {/* Header mobile com menu tipo drawer */}
       <div className="md:hidden sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-card px-4">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-lg font-bold text-primary-foreground">I</span>
-          </div>
-          <span className="text-lg font-bold">INCLUSIVA Admin</span>
+        <div className="flex items-center">
+          <Logo size={32} nameClassName="text-lg font-bold" />
+          <span className="text-lg font-bold ml-1">Admin</span>
         </div>
         <Sheet>
           <SheetTrigger asChild>

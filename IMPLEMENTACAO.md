@@ -1,9 +1,9 @@
-# Implementação Completa - INCLUSIVA E-commerce Angola
+# Implementação Completa - GOSEN E-commerce Angola
 
 ## ✅ Funcionalidades Implementadas
 
 ### 🎨 Design e Tema
-- ✅ Paleta de cores atualizada com base no logotipo (Dourado #B8941E e Branco)
+- ✅ Paleta de cores em tons terracota (#c96442) e creme (#faf9f5)
 - ✅ Tema responsivo e moderno
 - ✅ Componentes UI com shadcn/ui
 

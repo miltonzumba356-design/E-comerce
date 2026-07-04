@@ -4,7 +4,6 @@ import { Categories } from '../components/Categories';
 import { FeaturedProducts } from '../components/FeaturedProducts';
 import { Newsletter } from '../components/Newsletter';
 import { Footer } from '../components/Footer';
-import { BackendStatus } from '../components/BackendStatus';
 
 export default function HomePage() {
   return (
@@ -17,7 +16,6 @@ export default function HomePage() {
         <Newsletter />
       </main>
       <Footer />
-      <BackendStatus />
     </div>
   );
 }

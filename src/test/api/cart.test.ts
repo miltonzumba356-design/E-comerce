@@ -14,6 +14,17 @@ describe('cartAPI', () => {
     expect(cart.total).toBe('50000.00');
   });
 
+  it('get() também aceita o Cart retornado diretamente (comportamento real do backend, divergente do schema documentado)', async () => {
+    server.use(
+      http.get('*/api/cart/', () =>
+        HttpResponse.json({ id: 5, items: [], total: '0', created_at: '', updated_at: '' })
+      )
+    );
+
+    const cart = await cartAPI.get();
+    expect(cart.id).toBe(5);
+  });
+
   it('addItem envia {product, quantity} — não o objeto Cart inteiro', async () => {
     let capturedBody: any = null;
     server.use(

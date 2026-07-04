@@ -115,7 +115,7 @@ export type ReportData = Record<string, unknown>;
 // ========== TIPOS DE REQUISIÇÃO ==========
 
 export interface LoginCredentials {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -245,24 +245,38 @@ const apiRequest = async <T>(endpoint: string, options: RequestOptions = {}): Pr
 
 export const authAPI = {
   login: async (credentials: LoginCredentials): Promise<{ tokens: AuthTokens; user: User }> => {
-    const tokens = await apiRequest<AuthTokens>('/auth/login/', {
+    // O schema documenta a resposta de login como o schema `Login` (email/password),
+    // mas o backend real retorna { user, access, refresh } diretamente — usar o `user`
+    // da resposta quando presente, e só então cair para /auth/me/ como fallback.
+    const response = await apiRequest<AuthTokens & { user?: User }>('/auth/login/', {
       method: 'POST',
       body: JSON.stringify(credentials),
       auth: false,
     });
+    const tokens: AuthTokens = { access: response.access, refresh: response.refresh };
     setTokens(tokens);
-    const user = await authAPI.getCurrentUser();
+    const user = response.user ?? (await authAPI.getCurrentUser());
     return { tokens, user };
   },
 
   register: async (data: RegisterData): Promise<{ tokens: AuthTokens; user: User }> => {
-    await apiRequest('/auth/register/', {
+    // Mesma situação do login: o schema documenta a resposta como `Register`, mas o
+    // backend real já retorna { user, access, refresh } — evita um round-trip extra
+    // de login quando esses campos vêm presentes.
+    const response = await apiRequest<Partial<AuthTokens> & { user?: User }>('/auth/register/', {
       method: 'POST',
       body: JSON.stringify(data),
       auth: false,
     });
-    // O corpo de resposta do registro não documenta tokens; login imediato após criar a conta.
-    return authAPI.login({ username: data.username, password: data.password });
+
+    if (response.access && response.refresh) {
+      const tokens: AuthTokens = { access: response.access, refresh: response.refresh };
+      setTokens(tokens);
+      const user = response.user ?? (await authAPI.getCurrentUser());
+      return { tokens, user };
+    }
+
+    return authAPI.login({ email: data.email, password: data.password });
   },
 
   logout: (): void => {
@@ -349,8 +363,13 @@ export const categoriesAPI = {
 
 export const cartAPI = {
   get: async (): Promise<Cart> => {
-    const response = await apiRequest<Paginated<Cart>>('/cart/');
-    return response.results[0] || { id: 0, items: [], total: '0', created_at: '', updated_at: '' };
+    // O schema documenta a resposta como PaginatedCartList, mas o backend real
+    // retorna o objeto Cart diretamente — aceita ambos os formatos.
+    const response = await apiRequest<Paginated<Cart> | Cart>('/cart/');
+    if ('results' in response) {
+      return response.results[0] || { id: 0, items: [], total: '0', created_at: '', updated_at: '' };
+    }
+    return response;
   },
 
   addItem: async (productId: number, quantity: number): Promise<Cart> => {

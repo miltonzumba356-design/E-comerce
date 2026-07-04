@@ -9,7 +9,11 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import { CheckoutDialog } from './CheckoutDialog';
 
-export function ShoppingCartSheet() {
+interface ShoppingCartSheetProps {
+  triggerClassName?: string;
+}
+
+export function ShoppingCartSheet({ triggerClassName }: ShoppingCartSheetProps = {}) {
   const { cart, removeFromCart, updateQuantity, getCartTotal, getCartItemsCount, clearCart, isCartLoading } =
     useShop();
   const { format } = useCurrency();
@@ -37,7 +41,7 @@ export function ShoppingCartSheet() {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
+        <Button variant="outline" size="icon" className={`relative ${triggerClassName || ''}`}>
           <ShoppingCart className="h-5 w-5" />
           {getCartItemsCount() > 0 && (
             <span className="absolute -top-2 -right-2 bg-black text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">

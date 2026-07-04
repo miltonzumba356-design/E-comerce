@@ -1,4 +1,4 @@
-# Configuração do Backend - INCLUSIVA E-commerce
+# Configuração do Backend - GOSEN E-commerce
 
 ## Visão Geral
 
@@ -21,7 +21,7 @@ Não é necessário editar `api.ts` — ele já lê `import.meta.env.VITE_API_BA
 
 ### Autenticação
 - `POST /auth/register/` - Registro de novo usuário (username, email, password, password2)
-- `POST /auth/login/` - Login **por username** (não email) — retorna access e refresh tokens
+- `POST /auth/login/` - Login **por email** (não username) — retorna access e refresh tokens
 - `POST /auth/refresh/` - Renovar access token
 - `GET /auth/me/` - Obter dados do usuário atual
 - `PATCH /auth/me_update/` - Atualizar perfil do usuário

@@ -4,14 +4,71 @@ import { server } from '../mocks/server';
 import { authAPI } from '../../app/services/api';
 
 describe('authAPI', () => {
-  it('login envia {username, password} e busca o usuário em /auth/me/', async () => {
-    const { tokens, user } = await authAPI.login({ username: 'usuario_teste', password: 'senha123' });
+  it('login envia {email, password} e busca o usuário em /auth/me/', async () => {
+    let capturedBody: any = null;
+    server.use(
+      http.post('*/api/auth/login/', async ({ request }) => {
+        capturedBody = await request.json();
+        return HttpResponse.json({ access: 'valid-access-token', refresh: 'valid-refresh-token' });
+      })
+    );
 
+    const { tokens, user } = await authAPI.login({ email: 'usuario@exemplo.com', password: 'senha123' });
+
+    expect(capturedBody).toEqual({ email: 'usuario@exemplo.com', password: 'senha123' });
     expect(tokens.access).toBe('valid-access-token');
     expect(tokens.refresh).toBe('valid-refresh-token');
     expect(user.username).toBe('usuario_teste');
     expect(user.role).toBe('customer');
     expect(localStorage.getItem('access_token')).toBe('valid-access-token');
+  });
+
+  it('login usa o {user} da própria resposta quando presente (comportamento real do backend), sem round-trip extra a /auth/me/', async () => {
+    let meCallCount = 0;
+    server.use(
+      http.post('*/api/auth/login/', () =>
+        HttpResponse.json({
+          access: 'valid-access-token',
+          refresh: 'valid-refresh-token',
+          user: { id: 9, username: 'direto_da_resposta', role: 'customer' },
+        })
+      ),
+      http.get('*/api/auth/me/', () => {
+        meCallCount += 1;
+        return HttpResponse.json({ id: 9, username: 'nao_deveria_vir_daqui', role: 'customer' });
+      })
+    );
+
+    const { user } = await authAPI.login({ email: 'x@example.com', password: 'y' });
+    expect(user.username).toBe('direto_da_resposta');
+    expect(meCallCount).toBe(0);
+  });
+
+  it('register usa {user, access, refresh} da própria resposta quando presentes, sem fazer login separado', async () => {
+    let loginCallCount = 0;
+    server.use(
+      http.post('*/api/auth/register/', () =>
+        HttpResponse.json({
+          access: 'valid-access-token',
+          refresh: 'valid-refresh-token',
+          user: { id: 10, username: 'recem_criado', role: 'customer' },
+        })
+      ),
+      http.post('*/api/auth/login/', () => {
+        loginCallCount += 1;
+        return HttpResponse.json({ access: 'x', refresh: 'y' });
+      })
+    );
+
+    const { user } = await authAPI.register({
+      username: 'recem_criado',
+      email: 'x@example.com',
+      password: 'senha123',
+      password2: 'senha123',
+    });
+
+    expect(user.username).toBe('recem_criado');
+    expect(loginCallCount).toBe(0);
   });
 
   it('register cria a conta e depois faz login automaticamente', async () => {

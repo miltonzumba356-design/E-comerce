@@ -1,22 +1,22 @@
-# INCLUSIVA - E-commerce de Moda Inclusiva para Angola 🇦🇴
+# GOSEN - E-commerce Inclusivo para Angola 🇦🇴
 
-![INCLUSIVA](src/imports/WhatsApp_Image_2026-07-04_at_16.25.21.jpeg)
+![GOSEN](src/assets/logo-gosen.jpeg)
 
 ## 🎯 Sobre o Projeto
 
-**INCLUSIVA** é uma loja online moderna e completa de roupas e acessórios, com foco na diversidade e inclusão. O projeto foi desenvolvido especialmente para o mercado angolano, com moeda local (Kwanza - Kz), formato de telefone (+244) e localização em Português de Angola.
+**GOSEN** é uma loja online moderna e completa, com produtos diversos (moda, acessórios, casa, tecnologia e mais), com foco na diversidade e inclusão. O projeto foi desenvolvido especialmente para o mercado angolano, com moeda local (Kwanza - Kz), formato de telefone (+244) e localização em Português de Angola.
 
 ## ✨ Características Principais
 
 ### 🎨 Design Moderno
-- Paleta de cores baseada no logotipo (Dourado #AE8B0D)
+- Paleta de cores em tons terracota/creme
 - Interface responsiva para desktop, tablet e mobile
 - Animações suaves e experiência do usuário otimizada
 - Componentes UI modernos com shadcn/ui
 
 ### 🛍️ Loja Completa
-- **Homepage** com hero section e carrossel de ofertas
-- **Catálogo de produtos** com filtros por categoria e gênero
+- **Homepage** com hero section
+- **Catálogo de produtos** com categorias dinâmicas (definidas pelo admin via API)
 - **Sistema de favoritos** para salvar produtos
 - **Carrinho de compras** com atualização em tempo real
 - **Busca inteligente** de produtos
@@ -72,7 +72,7 @@
 1. **Clone o repositório**
 ```bash
 git clone <seu-repositorio>
-cd inclusiva-ecommerce
+cd gosen-ecommerce
 ```
 
 2. **Instale as dependências**
@@ -124,9 +124,9 @@ npm run test:watch  # modo watch
 ## 💻 Scripts Disponíveis
 
 ```bash
-pnpm dev        # Iniciar servidor de desenvolvimento
-pnpm build      # Build para produção
-pnpm preview    # Preview da build de produção
+npm run dev      # Iniciar servidor de desenvolvimento
+npm run build    # Build para produção
+npm run test     # Testes de contrato (Vitest + MSW)
 ```
 
 ## 🔌 Integração com Backend
@@ -150,9 +150,9 @@ Todo o catálogo (produtos, categorias), carrinho e pedidos vêm diretamente da 
 
 Baseada no logotipo da marca:
 
-- **Primária**: `#AE8B0D` (Dourado)
-- **Secundária**: `#F7EFD9` (Creme claro)
-- **Accent**: `#AE8B0D` (Dourado)
+- **Primária**: `#c96442` (Terracota)
+- **Secundária**: `#e9e6dc` (Bege claro)
+- **Accent**: `#c96442` (Terracota)
 - **Background**: `#FFFFFF` (Branco)
 
 ## 📱 Responsividade
@@ -173,8 +173,8 @@ O site é totalmente responsivo e se adapta a:
 ## 🌟 Funcionalidades Destacadas
 
 ### Para Clientes
-- ✅ Navegação intuitiva por categorias
-- ✅ Filtros por gênero (Feminino, Masculino, Acessórios)
+- ✅ Navegação intuitiva por categorias dinâmicas
+- ✅ Busca de produtos
 - ✅ Sistema de favoritos
 - ✅ Carrinho persistente
 - ✅ Checkout seguro
@@ -207,7 +207,7 @@ Este projeto foi desenvolvido para fins educacionais e comerciais.
 ## 📞 Suporte
 
 Para dúvidas ou suporte:
-- 📧 Email: suporte@inclusiva.ao
+- 📧 Email: suporte@gosen.ao
 - 📱 WhatsApp: +244 xxx xxx xxx
 
 ## 🎯 Roadmap Futuro

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { Menu, Search, User, Heart, LogOut, LayoutDashboard } from 'lucide-react';
 import { Button } from './ui/button';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
@@ -10,15 +10,37 @@ import { useCatalog } from '../contexts/CatalogContext';
 import { SearchDialog } from './SearchDialog';
 import { ProfileDialog } from './ProfileDialog';
 import { FavoritesDialog } from './FavoritesDialog';
+import { Logo } from './Logo';
+
+// Só a homepage tem uma hero escura por trás — nas demais páginas o header é sempre sólido.
+const TRANSPARENT_ON_TOP_ROUTES = ['/'];
+const SCROLL_THRESHOLD = 40;
 
 export function Header() {
   const { favorites } = useShop();
   const { categories } = useCatalog();
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const canBeTransparent = TRANSPARENT_ON_TOP_ROUTES.includes(location.pathname);
+  const isTransparent = canBeTransparent && !isScrolled;
+
+  useEffect(() => {
+    if (!canBeTransparent) {
+      setIsScrolled(true);
+      return;
+    }
+
+    const handleScroll = () => setIsScrolled(window.scrollY > SCROLL_THRESHOLD);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [canBeTransparent]);
 
   // Navegação gerada a partir das categorias reais cadastradas no backend
   const menuItems = [
@@ -49,30 +71,35 @@ export function Header() {
     setProfileOpen(true);
   };
 
+  const iconButtonClass = isTransparent ? 'text-white hover:bg-white/15 hover:text-white' : '';
+  const navLinkClass = isTransparent
+    ? 'text-white/90 hover:text-white transition-colors'
+    : 'text-gray-700 hover:text-black transition-colors';
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
+    <header
+      className={`fixed top-0 inset-x-0 z-50 w-full transition-colors duration-300 ${
+        isTransparent ? 'bg-transparent' : 'border-b bg-white shadow-sm'
+      }`}
+    >
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-xl font-bold text-primary-foreground">I</span>
-              </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                INCLUSIVA
-              </h1>
+            <Link to="/">
+              <Logo
+                nameClassName={
+                  isTransparent
+                    ? 'text-2xl font-bold text-white'
+                    : 'text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent'
+                }
+              />
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex gap-6">
               {menuItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  onClick={(e) => handleClick(e, item.href)}
-                  className="text-gray-700 hover:text-black transition-colors"
-                >
+                <a key={item.name} href={item.href} onClick={(e) => handleClick(e, item.href)} className={navLinkClass}>
                   {item.name}
                 </a>
               ))}
@@ -84,7 +111,7 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:flex"
+              className={`hidden sm:flex ${iconButtonClass}`}
               onClick={() => setSearchOpen(true)}
             >
               <Search className="h-5 w-5" />
@@ -93,7 +120,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="hidden sm:flex"
+                className={`hidden sm:flex ${iconButtonClass}`}
                 onClick={() => navigate('/admin')}
                 title="Painel Admin"
               >
@@ -103,7 +130,7 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:flex"
+              className={`hidden sm:flex ${iconButtonClass}`}
               onClick={handleProfileClick}
             >
               <User className="h-5 w-5" />
@@ -111,7 +138,7 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:flex relative"
+              className={`hidden sm:flex relative ${iconButtonClass}`}
               onClick={() => setFavoritesOpen(true)}
             >
               <Heart className="h-5 w-5" />
@@ -121,12 +148,14 @@ export function Header() {
                 </span>
               )}
             </Button>
-            <ShoppingCartSheet />
+            <ShoppingCartSheet
+              triggerClassName={isTransparent ? 'bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20' : ''}
+            />
 
             {/* Mobile Menu */}
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className={iconButtonClass}>
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>

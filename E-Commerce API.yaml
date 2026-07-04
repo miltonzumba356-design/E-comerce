@@ -1074,14 +1074,15 @@ components:
     Login:
       type: object
       properties:
-        username:
+        email:
           type: string
+          format: email
         password:
           type: string
           writeOnly: true
       required:
+      - email
       - password
-      - username
     Order:
       type: object
       properties:
