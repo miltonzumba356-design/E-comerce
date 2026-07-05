@@ -37,6 +37,22 @@ describe('productsAPI', () => {
     expect(created.name).toBeDefined();
   });
 
+  it('create expõe a mensagem real de "sem permissão" (envelope do backend em produção), não "[object Object]"', async () => {
+    localStorage.setItem('access_token', 'valid-access-token');
+    server.use(
+      http.post('*/api/products/', () =>
+        HttpResponse.json(
+          { error: true, message: null, detail: { detail: 'You do not have permission to perform this action.' } },
+          { status: 403 }
+        )
+      )
+    );
+
+    await expect(productsAPI.create({ name: 'Novo' })).rejects.toThrow(
+      'You do not have permission to perform this action.'
+    );
+  });
+
   it('delete usa o método DELETE e não retorna corpo (204)', async () => {
     localStorage.setItem('access_token', 'valid-access-token');
     await expect(productsAPI.delete('vestido-elegante')).resolves.toBeUndefined();
@@ -119,5 +135,76 @@ describe('productsAPI', () => {
 
     expect(capturedMethod).toBe('PUT');
     expect(capturedContentType).toMatch(/^multipart\/form-data/);
+  });
+
+  it('replace com imageFile: null sinaliza remoção da imagem existente (campo vazio no multipart)', async () => {
+    localStorage.setItem('access_token', 'valid-access-token');
+    let capturedImageValue: FormDataEntryValue | null = null;
+
+    server.use(
+      http.put('*/api/products/:slug/', async ({ request }) => {
+        const form = await request.formData();
+        capturedImageValue = form.get('image');
+        return HttpResponse.json({}, { status: 200 });
+      })
+    );
+
+    await productsAPI.replace('vestido-elegante', { specifications: { cor: 'azul' } }, null);
+
+    expect(capturedImageValue).toBe('');
+  });
+
+  it('getAll/getBySlug resolvem image relativo ("/media/...") para URL absoluta usando a origem do backend', async () => {
+    server.use(
+      http.get('*/api/products/', () =>
+        HttpResponse.json({
+          count: 1,
+          next: null,
+          previous: null,
+          results: [
+            {
+              id: 10,
+              category: 'vestidos',
+              category_detail: { id: 1, name: 'Vestidos', slug: 'vestidos' },
+              name: 'Vestido Elegante',
+              slug: 'vestido-elegante',
+              price: '25000.00',
+              image: '/media/products/vestido.jpg',
+              is_active: true,
+              created_at: '2026-01-01T00:00:00Z',
+              updated_at: '2026-01-01T00:00:00Z',
+            },
+          ],
+        })
+      )
+    );
+
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const expectedOrigin = apiBase.replace(/\/api\/?$/, '');
+
+    const data = await productsAPI.getAll();
+    expect(data.results[0].image).toBe(`${expectedOrigin}/media/products/vestido.jpg`);
+  });
+
+  it('não reescreve image que já é uma URL absoluta', async () => {
+    server.use(
+      http.get('*/api/products/:slug/', () =>
+        HttpResponse.json({
+          id: 10,
+          category: 'vestidos',
+          category_detail: { id: 1, name: 'Vestidos', slug: 'vestidos' },
+          name: 'Vestido Elegante',
+          slug: 'vestido-elegante',
+          price: '25000.00',
+          image: 'https://cdn.exemplo.com/vestido.jpg',
+          is_active: true,
+          created_at: '2026-01-01T00:00:00Z',
+          updated_at: '2026-01-01T00:00:00Z',
+        })
+      )
+    );
+
+    const product = await productsAPI.getBySlug('vestido-elegante');
+    expect(product.image).toBe('https://cdn.exemplo.com/vestido.jpg');
   });
 });

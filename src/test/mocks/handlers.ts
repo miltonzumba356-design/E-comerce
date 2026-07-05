@@ -469,4 +469,36 @@ export const handlers = [
     if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
     return HttpResponse.json(paginated([{ status: 'pending', count: 1 }, { status: 'delivered', count: 4 }]));
   }),
+
+  // ---------- IA (assistente de compras — fora do prefixo /api/) ----------
+  http.get('*/ia/sessoes/', ({ request }) => {
+    if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
+    return HttpResponse.json(paginated([{ id: 1, titulo: 'Sessão 1', message_count: 2, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' }]));
+  }),
+
+  http.post('*/ia/sessoes/', ({ request }) => {
+    if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
+    return HttpResponse.json(
+      { id: 1, titulo: 'Nova sessão', message_count: 0, created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+      { status: 201 }
+    );
+  }),
+
+  http.get('*/ia/sessoes/:id/mensagens/', ({ request }) => {
+    if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
+    return HttpResponse.json([
+      { id: 1, role: 'user', content: 'Oi', tool_name: null, tool_input: null, tool_output: null, image: null, created_at: '2026-01-01T00:00:00Z' },
+      { id: 2, role: 'assistant', content: 'Olá! Como posso ajudar?', tool_name: null, tool_input: null, tool_output: null, image: null, created_at: '2026-01-01T00:00:01Z' },
+    ]);
+  }),
+
+  http.post('*/ia/sessoes/:id/perguntar/', ({ request }) => {
+    if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
+    return HttpResponse.json({ reply: 'Aqui está sua resposta.', tool_calls: [] });
+  }),
+
+  http.delete('*/ia/sessoes/:id/', ({ request }) => {
+    if (!requireAuth(request)) return HttpResponse.json({}, { status: 401 });
+    return new HttpResponse(null, { status: 204 });
+  }),
 ];

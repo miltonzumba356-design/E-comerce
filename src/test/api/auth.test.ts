@@ -3,6 +3,14 @@ import { http, HttpResponse } from 'msw';
 import { server } from '../mocks/server';
 import { authAPI } from '../../app/services/api';
 
+const rejects = (promise: Promise<unknown>) =>
+  promise.then(
+    () => {
+      throw new Error('esperava rejeição, mas a promise resolveu');
+    },
+    (error) => error
+  );
+
 describe('authAPI', () => {
   it('login envia {email, password} e busca o usuário em /auth/me/', async () => {
     let capturedBody: any = null;
@@ -131,5 +139,35 @@ describe('authAPI', () => {
     expect(user.username).toBe('usuario_teste');
     expect(callCount).toBe(2); // 1ª tentativa (401) + repetição após refresh
     expect(localStorage.getItem('access_token')).toBe('refreshed-access-token');
+  });
+
+  it('login com credenciais inválidas expõe a mensagem real, não "[object Object]" (envelope do backend em produção)', async () => {
+    server.use(
+      http.post('*/api/auth/login/', () =>
+        HttpResponse.json(
+          { error: true, message: null, detail: { non_field_errors: ['Invalid credentials.'] } },
+          { status: 400 }
+        )
+      )
+    );
+
+    const error: any = await rejects(authAPI.login({ email: 'x@example.com', password: 'errada' }));
+    expect(error.message).toBe('Invalid credentials.');
+  });
+
+  it('register com senhas diferentes expõe a mensagem de validação do campo (envelope do backend em produção)', async () => {
+    server.use(
+      http.post('*/api/auth/register/', () =>
+        HttpResponse.json(
+          { error: true, message: null, detail: { password: ['Passwords do not match.'] } },
+          { status: 400 }
+        )
+      )
+    );
+
+    const error: any = await rejects(
+      authAPI.register({ username: 'x', email: 'x@example.com', password: 'a', password2: 'b' })
+    );
+    expect(error.message).toBe('password: Passwords do not match.');
   });
 });

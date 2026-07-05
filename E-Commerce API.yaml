@@ -7,11 +7,11 @@ info:
 paths:
   /api/auth/:
     post:
-      operationId: auth_create
+      operationId: api_auth_create
       description: Cria uma nova conta de usuário com os dados fornecidos.
       summary: Registrar novo usuário
       tags:
-      - auth
+      - Autenticação
       requestBody:
         content:
           application/json:
@@ -35,7 +35,7 @@ paths:
           description: ''
   /api/auth/admin/users/:
     get:
-      operationId: auth_admin_users_list
+      operationId: api_auth_admin_users_list
       description: Retorna uma lista paginada de todos os usuários (apenas para administradores).
       summary: Listar usuários
       parameters:
@@ -52,7 +52,7 @@ paths:
         schema:
           type: integer
       tags:
-      - auth
+      - Administração
       security:
       - jwtAuth: []
       responses:
@@ -64,7 +64,7 @@ paths:
           description: ''
   /api/auth/admin/users/{id}/:
     get:
-      operationId: auth_admin_users_retrieve
+      operationId: api_auth_admin_users_retrieve
       description: Retorna os detalhes de um usuário específico.
       summary: Obter detalhes do usuário
       parameters:
@@ -74,7 +74,7 @@ paths:
           type: integer
         required: true
       tags:
-      - auth
+      - Administração
       security:
       - jwtAuth: []
       responses:
@@ -86,7 +86,7 @@ paths:
           description: ''
   /api/auth/admin/users/{id}/change-role/:
     patch:
-      operationId: auth_admin_users_change_role_partial_update
+      operationId: api_auth_admin_users_change_role_partial_update
       description: Altera a função/permissão de um usuário específico (apenas para
         administradores).
       summary: Alterar função do usuário
@@ -97,7 +97,7 @@ paths:
           type: integer
         required: true
       tags:
-      - auth
+      - Administração
       requestBody:
         content:
           application/json:
@@ -120,12 +120,12 @@ paths:
           description: ''
   /api/auth/login/:
     post:
-      operationId: auth_login_create
+      operationId: api_auth_login_create
       description: Autentica o usuário com credenciais (email/senha) e retorna os
         tokens JWT.
       summary: Autenticar usuário
       tags:
-      - auth
+      - Autenticação
       requestBody:
         content:
           application/json:
@@ -150,11 +150,11 @@ paths:
           description: ''
   /api/auth/me/:
     get:
-      operationId: auth_me_retrieve
+      operationId: api_auth_me_retrieve
       description: Retorna os dados do usuário atualmente autenticado.
       summary: Obter dados do usuário logado
       tags:
-      - auth
+      - Autenticação
       security:
       - jwtAuth: []
       responses:
@@ -166,11 +166,11 @@ paths:
           description: ''
   /api/auth/me_update/:
     patch:
-      operationId: auth_me_update_partial_update
+      operationId: api_auth_me_update_partial_update
       description: Atualiza parcialmente os dados do usuário autenticado.
       summary: Atualizar dados do usuário logado
       tags:
-      - auth
+      - Autenticação
       requestBody:
         content:
           application/json:
@@ -193,12 +193,12 @@ paths:
           description: ''
   /api/auth/refresh/:
     post:
-      operationId: auth_refresh_create
+      operationId: api_auth_refresh_create
       description: |-
         Takes a refresh type JSON web token and returns an access type JSON web
         token if the refresh token is valid.
       tags:
-      - auth
+      - api
       requestBody:
         content:
           application/json:
@@ -220,11 +220,11 @@ paths:
           description: ''
   /api/auth/register/:
     post:
-      operationId: auth_register_create
+      operationId: api_auth_register_create
       description: Cria uma nova conta de usuário e retorna os tokens de acesso.
       summary: Registrar novo usuário
       tags:
-      - auth
+      - Autenticação
       requestBody:
         content:
           application/json:
@@ -249,7 +249,7 @@ paths:
           description: ''
   /api/cart/:
     get:
-      operationId: cart_list
+      operationId: api_cart_list
       description: Retorna o carrinho atual do usuário autenticado com todos os itens.
       summary: Visualizar carrinho
       parameters:
@@ -266,7 +266,7 @@ paths:
         schema:
           type: integer
       tags:
-      - cart
+      - Carrinho
       security:
       - jwtAuth: []
       responses:
@@ -278,7 +278,7 @@ paths:
           description: ''
   /api/cart/{id}/remove/:
     delete:
-      operationId: cart_remove_destroy
+      operationId: api_cart_remove_destroy
       description: Remove um item específico do carrinho do usuário.
       summary: Remover item do carrinho
       parameters:
@@ -288,7 +288,7 @@ paths:
           type: string
         required: true
       tags:
-      - cart
+      - Carrinho
       security:
       - jwtAuth: []
       responses:
@@ -296,7 +296,7 @@ paths:
           description: No response body
   /api/cart/{id}/update_quantity/:
     patch:
-      operationId: cart_update_quantity_partial_update
+      operationId: api_cart_update_quantity_partial_update
       description: Atualiza a quantidade de um item específico no carrinho.
       summary: Atualizar quantidade do item
       parameters:
@@ -306,7 +306,7 @@ paths:
           type: string
         required: true
       tags:
-      - cart
+      - Carrinho
       security:
       - jwtAuth: []
       responses:
@@ -318,11 +318,11 @@ paths:
           description: ''
   /api/cart/add/:
     post:
-      operationId: cart_add_create
+      operationId: api_cart_add_create
       description: Adiciona um produto ao carrinho do usuário com a quantidade especificada.
       summary: Adicionar item ao carrinho
       tags:
-      - cart
+      - Carrinho
       security:
       - jwtAuth: []
       responses:
@@ -334,11 +334,11 @@ paths:
           description: ''
   /api/cart/clear/:
     delete:
-      operationId: cart_clear_destroy
+      operationId: api_cart_clear_destroy
       description: Remove todos os itens do carrinho do usuário autenticado.
       summary: Limpar carrinho
       tags:
-      - cart
+      - Carrinho
       security:
       - jwtAuth: []
       responses:
@@ -346,7 +346,7 @@ paths:
           description: No response body
   /api/inventory/:
     get:
-      operationId: inventory_list
+      operationId: api_inventory_list
       description: Retorna uma lista paginada de todos os registros de estoque.
       summary: Listar estoque
       parameters:
@@ -363,7 +363,7 @@ paths:
         schema:
           type: integer
       tags:
-      - inventory
+      - Estoque
       security:
       - jwtAuth: []
       responses:
@@ -375,7 +375,7 @@ paths:
           description: ''
   /api/inventory/{id}/:
     get:
-      operationId: inventory_retrieve
+      operationId: api_inventory_retrieve
       description: Retorna os detalhes de um registro de estoque específico.
       summary: Obter detalhes do estoque
       parameters:
@@ -386,7 +386,7 @@ paths:
         description: A unique integer value identifying this stock.
         required: true
       tags:
-      - inventory
+      - Estoque
       security:
       - jwtAuth: []
       responses:
@@ -398,7 +398,7 @@ paths:
           description: ''
   /api/inventory/{id}/adjust/:
     patch:
-      operationId: inventory_adjust_partial_update
+      operationId: api_inventory_adjust_partial_update
       description: Ajusta a quantidade em estoque de um produto específico.
       summary: Ajustar quantidade do estoque
       parameters:
@@ -409,7 +409,7 @@ paths:
         description: A unique integer value identifying this stock.
         required: true
       tags:
-      - inventory
+      - Estoque
       requestBody:
         content:
           application/json:
@@ -432,12 +432,12 @@ paths:
           description: ''
   /api/inventory/low_stock/:
     get:
-      operationId: inventory_low_stock_retrieve
+      operationId: api_inventory_low_stock_retrieve
       description: Retorna uma lista paginada de produtos cuja quantidade está abaixo
         do limite mínimo definido.
       summary: Listar produtos com estoque baixo
       tags:
-      - inventory
+      - Estoque
       security:
       - jwtAuth: []
       responses:
@@ -449,7 +449,7 @@ paths:
           description: ''
   /api/orders/:
     get:
-      operationId: orders_list
+      operationId: api_orders_list
       description: Retorna uma lista paginada de pedidos do usuário ou todos os pedidos
         para administradores.
       summary: Listar pedidos
@@ -467,7 +467,7 @@ paths:
         schema:
           type: integer
       tags:
-      - orders
+      - Pedidos
       security:
       - jwtAuth: []
       responses:
@@ -478,11 +478,11 @@ paths:
                 $ref: '#/components/schemas/PaginatedOrderList'
           description: ''
     post:
-      operationId: orders_create
+      operationId: api_orders_create
       description: Cria um novo pedido a partir dos itens do carrinho do usuário.
       summary: Criar novo pedido
       tags:
-      - orders
+      - Pedidos
       requestBody:
         content:
           application/json:
@@ -506,7 +506,7 @@ paths:
           description: ''
   /api/orders/{id}/:
     get:
-      operationId: orders_retrieve
+      operationId: api_orders_retrieve
       description: Retorna os detalhes de um pedido específico.
       summary: Obter detalhes do pedido
       parameters:
@@ -516,7 +516,7 @@ paths:
           type: string
         required: true
       tags:
-      - orders
+      - Pedidos
       security:
       - jwtAuth: []
       responses:
@@ -528,7 +528,7 @@ paths:
           description: ''
   /api/orders/{id}/cancel/:
     post:
-      operationId: orders_cancel_create
+      operationId: api_orders_cancel_create
       description: Cancela um pedido existente desde que o status atual permita o
         cancelamento.
       summary: Cancelar pedido
@@ -539,7 +539,7 @@ paths:
           type: string
         required: true
       tags:
-      - orders
+      - Pedidos
       requestBody:
         content:
           application/json:
@@ -563,7 +563,7 @@ paths:
           description: ''
   /api/orders/{id}/status/:
     patch:
-      operationId: orders_status_partial_update
+      operationId: api_orders_status_partial_update
       description: Atualiza o status de um pedido (apenas para administradores).
       summary: Atualizar status do pedido
       parameters:
@@ -573,7 +573,7 @@ paths:
           type: string
         required: true
       tags:
-      - orders
+      - Pedidos
       requestBody:
         content:
           application/json:
@@ -596,11 +596,11 @@ paths:
           description: ''
   /api/orders/delivery-check/:
     post:
-      operationId: orders_delivery_check_create
+      operationId: api_orders_delivery_check_create
       description: Check if a product can be delivered to a postal code region.
       summary: Check delivery availability
       tags:
-      - orders
+      - Pedidos
       requestBody:
         content:
           application/json:
@@ -665,7 +665,7 @@ paths:
           description: Missing required fields
   /api/payments/{id}/refund/:
     post:
-      operationId: payments_refund_create
+      operationId: api_payments_refund_create
       description: Solicita o reembolso de um pagamento existente (apenas para administradores).
       summary: Reembolsar pagamento
       parameters:
@@ -676,7 +676,7 @@ paths:
         description: A unique integer value identifying this payment.
         required: true
       tags:
-      - payments
+      - Pagamentos
       requestBody:
         content:
           application/json:
@@ -700,12 +700,12 @@ paths:
           description: ''
   /api/payments/process/:
     post:
-      operationId: payments_process_create
+      operationId: api_payments_process_create
       description: Processa o pagamento de um pedido utilizando o método de pagamento
         informado.
       summary: Processar pagamento
       tags:
-      - payments
+      - Pagamentos
       requestBody:
         content:
           application/json:
@@ -729,7 +729,7 @@ paths:
           description: ''
   /api/products/:
     get:
-      operationId: products_list
+      operationId: api_products_list
       description: Retorna uma lista paginada de todos os produtos ativos.
       summary: Listar produtos
       parameters:
@@ -746,7 +746,7 @@ paths:
         schema:
           type: integer
       tags:
-      - products
+      - Produtos
       security:
       - jwtAuth: []
       responses:
@@ -757,11 +757,11 @@ paths:
                 $ref: '#/components/schemas/PaginatedProductList'
           description: ''
     post:
-      operationId: products_create
+      operationId: api_products_create
       description: Cria um novo produto com os dados fornecidos.
       summary: Criar novo produto
       tags:
-      - products
+      - Produtos
       requestBody:
         content:
           multipart/form-data:
@@ -785,7 +785,7 @@ paths:
           description: ''
   /api/products/{slug}/:
     get:
-      operationId: products_retrieve
+      operationId: api_products_retrieve
       description: Retorna os detalhes de um produto específico pelo slug.
       summary: Obter detalhes do produto
       parameters:
@@ -795,7 +795,7 @@ paths:
           type: string
         required: true
       tags:
-      - products
+      - Produtos
       security:
       - jwtAuth: []
       responses:
@@ -806,7 +806,7 @@ paths:
                 $ref: '#/components/schemas/Product'
           description: ''
     put:
-      operationId: products_update
+      operationId: api_products_update
       description: Atualiza todos os dados de um produto existente.
       summary: Atualizar produto
       parameters:
@@ -816,7 +816,7 @@ paths:
           type: string
         required: true
       tags:
-      - products
+      - Produtos
       requestBody:
         content:
           multipart/form-data:
@@ -839,7 +839,7 @@ paths:
                 $ref: '#/components/schemas/Product'
           description: ''
     patch:
-      operationId: products_partial_update
+      operationId: api_products_partial_update
       description: Atualiza parcialmente os dados de um produto existente.
       summary: Atualizar parcialmente produto
       parameters:
@@ -849,7 +849,7 @@ paths:
           type: string
         required: true
       tags:
-      - products
+      - Produtos
       requestBody:
         content:
           multipart/form-data:
@@ -871,7 +871,7 @@ paths:
                 $ref: '#/components/schemas/Product'
           description: ''
     delete:
-      operationId: products_destroy
+      operationId: api_products_destroy
       description: Remove um produto do sistema (desativação lógica).
       summary: Remover produto
       parameters:
@@ -881,7 +881,7 @@ paths:
           type: string
         required: true
       tags:
-      - products
+      - Produtos
       security:
       - jwtAuth: []
       responses:
@@ -889,12 +889,12 @@ paths:
           description: No response body
   /api/products/by_category/:
     get:
-      operationId: products_by_category_retrieve
+      operationId: api_products_by_category_retrieve
       description: Retorna uma lista paginada de produtos filtrados pela categoria
         informada via parâmetro 'slug'.
       summary: Listar produtos por categoria
       tags:
-      - products
+      - Produtos
       security:
       - jwtAuth: []
       responses:
@@ -906,7 +906,7 @@ paths:
           description: ''
   /api/products/categories/:
     get:
-      operationId: products_categories_list
+      operationId: api_products_categories_list
       description: Retorna uma lista paginada de todas as categorias disponíveis.
       summary: Listar categorias
       parameters:
@@ -923,7 +923,7 @@ paths:
         schema:
           type: integer
       tags:
-      - products
+      - Categorias
       security:
       - jwtAuth: []
       responses:
@@ -934,11 +934,11 @@ paths:
                 $ref: '#/components/schemas/PaginatedCategoryList'
           description: ''
     post:
-      operationId: products_categories_create
+      operationId: api_products_categories_create
       description: Cria uma nova categoria com os dados fornecidos.
       summary: Criar nova categoria
       tags:
-      - products
+      - Categorias
       requestBody:
         content:
           application/json:
@@ -962,7 +962,7 @@ paths:
           description: ''
   /api/products/categories/{slug}/:
     get:
-      operationId: products_categories_retrieve
+      operationId: api_products_categories_retrieve
       description: Retorna os detalhes de uma categoria específica pelo slug.
       summary: Obter detalhes da categoria
       parameters:
@@ -972,7 +972,7 @@ paths:
           type: string
         required: true
       tags:
-      - products
+      - Categorias
       security:
       - jwtAuth: []
       responses:
@@ -983,7 +983,7 @@ paths:
                 $ref: '#/components/schemas/Category'
           description: ''
     put:
-      operationId: products_categories_update
+      operationId: api_products_categories_update
       description: Atualiza todos os dados de uma categoria existente.
       summary: Atualizar categoria
       parameters:
@@ -993,7 +993,7 @@ paths:
           type: string
         required: true
       tags:
-      - products
+      - Categorias
       requestBody:
         content:
           application/json:
@@ -1016,7 +1016,7 @@ paths:
                 $ref: '#/components/schemas/Category'
           description: ''
     patch:
-      operationId: products_categories_partial_update
+      operationId: api_products_categories_partial_update
       description: Atualiza parcialmente os dados de uma categoria existente.
       summary: Atualizar parcialmente categoria
       parameters:
@@ -1026,7 +1026,7 @@ paths:
           type: string
         required: true
       tags:
-      - products
+      - Categorias
       requestBody:
         content:
           application/json:
@@ -1048,7 +1048,7 @@ paths:
                 $ref: '#/components/schemas/Category'
           description: ''
     delete:
-      operationId: products_categories_destroy
+      operationId: api_products_categories_destroy
       description: Remove uma categoria do sistema.
       summary: Remover categoria
       parameters:
@@ -1058,7 +1058,7 @@ paths:
           type: string
         required: true
       tags:
-      - products
+      - Categorias
       security:
       - jwtAuth: []
       responses:
@@ -1066,7 +1066,7 @@ paths:
           description: No response body
   /api/reports/:
     get:
-      operationId: reports_list
+      operationId: api_reports_list
       description: Retorna uma lista dos endpoints de relatórios disponíveis.
       summary: Listar endpoints de relatórios
       parameters:
@@ -1083,7 +1083,7 @@ paths:
         schema:
           type: integer
       tags:
-      - reports
+      - Relatórios
       security:
       - jwtAuth: []
       responses:
@@ -1091,7 +1091,7 @@ paths:
           description: Lista de endpoints
   /api/reports/best_sellers/:
     get:
-      operationId: reports_best_sellers_list
+      operationId: api_reports_best_sellers_list
       description: 'Retorna uma lista dos produtos mais vendidos com limite configurável
         (padrão: 10).'
       summary: Obter produtos mais vendidos
@@ -1115,7 +1115,7 @@ paths:
         schema:
           type: integer
       tags:
-      - reports
+      - Relatórios
       security:
       - jwtAuth: []
       responses:
@@ -1127,11 +1127,11 @@ paths:
           description: ''
   /api/reports/dashboard/:
     get:
-      operationId: reports_dashboard_retrieve
+      operationId: api_reports_dashboard_retrieve
       description: Retorna os dados resumidos do dashboard com métricas principais.
       summary: Obter dados do dashboard
       tags:
-      - reports
+      - Relatórios
       security:
       - jwtAuth: []
       responses:
@@ -1143,7 +1143,7 @@ paths:
           description: ''
   /api/reports/monthly_revenue/:
     get:
-      operationId: reports_monthly_revenue_list
+      operationId: api_reports_monthly_revenue_list
       description: 'Retorna a receita mensal com base no número de meses informado
         (padrão: 6).'
       summary: Obter receita mensal
@@ -1167,7 +1167,7 @@ paths:
         schema:
           type: integer
       tags:
-      - reports
+      - Relatórios
       security:
       - jwtAuth: []
       responses:
@@ -1179,7 +1179,7 @@ paths:
           description: ''
   /api/reports/orders_by_status/:
     get:
-      operationId: reports_orders_by_status_list
+      operationId: api_reports_orders_by_status_list
       description: Retorna a quantidade de pedidos agrupados por status.
       summary: Obter pedidos por status
       parameters:
@@ -1196,7 +1196,7 @@ paths:
         schema:
           type: integer
       tags:
-      - reports
+      - Relatórios
       security:
       - jwtAuth: []
       responses:
@@ -1208,7 +1208,7 @@ paths:
           description: ''
   /api/reports/sales/:
     get:
-      operationId: reports_sales_list
+      operationId: api_reports_sales_list
       description: 'Retorna um relatório de vendas com base no período em dias informado
         (padrão: 30).'
       summary: Obter relatório de vendas
@@ -1232,7 +1232,7 @@ paths:
         schema:
           type: integer
       tags:
-      - reports
+      - Relatórios
       security:
       - jwtAuth: []
       responses:
@@ -1242,6 +1242,173 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedSalesReportList'
           description: ''
+  /ia/sessoes/:
+    get:
+      operationId: ia_sessoes_list
+      description: Retorna todas as sessões de chat do usuário autenticado.
+      summary: Listar sessões
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Assistente IA
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSessionList'
+          description: ''
+    post:
+      operationId: ia_sessoes_create
+      description: Cria uma nova sessão de chat para o usuário autenticado.
+      summary: Criar sessão
+      tags:
+      - Assistente IA
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SessionRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: ''
+  /ia/sessoes/{id}/:
+    get:
+      operationId: ia_sessoes_retrieve
+      description: Retorna os detalhes de uma sessão com todas as mensagens.
+      summary: Obter sessão
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this session.
+        required: true
+      tags:
+      - Assistente IA
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionDetail'
+          description: ''
+    delete:
+      operationId: ia_sessoes_destroy
+      description: Apaga uma sessão de chat e todas as suas mensagens.
+      summary: Apagar sessão
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this session.
+        required: true
+      tags:
+      - Assistente IA
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /ia/sessoes/{id}/mensagens/:
+    get:
+      operationId: ia_sessoes_mensagens_retrieve
+      description: Retorna todas as mensagens de uma sessão de chat.
+      summary: Histórico da sessão
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this session.
+        required: true
+      tags:
+      - Assistente IA
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+          description: ''
+  /ia/sessoes/{id}/perguntar/:
+    post:
+      operationId: ia_sessoes_perguntar_create
+      description: Envia uma pergunta para o assistente IA. Aceita uma imagem opcional
+        para busca por similaridade.
+      summary: Fazer pergunta ao assistente
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this session.
+        required: true
+      tags:
+      - Assistente IA
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PerguntarRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reply:
+                    type: string
+                    description: Resposta em texto do assistente
+                  tool_calls:
+                    type: array
+                    description: Ferramentas utilizadas na consulta
+                    items:
+                      type: object
+                      properties:
+                        tool:
+                          type: string
+                        input:
+                          type: object
+                          description: Parâmetros enviados
+                        output:
+                          type: object
+                          description: Resultado da ferramenta
+          description: Resposta do assistente
 components:
   schemas:
     BestSeller:
@@ -1407,6 +1574,45 @@ components:
       required:
       - email
       - password
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/MessageRoleEnum'
+        content:
+          type: string
+        tool_name:
+          type: string
+          nullable: true
+          maxLength: 100
+        tool_input:
+          nullable: true
+        tool_output:
+          nullable: true
+        image:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - role
+    MessageRoleEnum:
+      enum:
+      - user
+      - assistant
+      - tool
+      type: string
+      description: |-
+        * `user` - Usuário
+        * `assistant` - Assistente
+        * `tool` - Ferramenta
     MonthlyRevenue:
       type: object
       properties:
@@ -1730,6 +1936,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SalesReport'
+    PaginatedSessionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Session'
     PaginatedStockList:
       type: object
       required:
@@ -1816,7 +2045,7 @@ components:
         price:
           type: string
           format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
         brand:
           type: string
           maxLength: 100
@@ -1945,6 +2174,17 @@ components:
         * `approved` - Approved
         * `declined` - Declined
         * `refunded` - Refunded
+    PerguntarRequest:
+      type: object
+      properties:
+        pergunta:
+          type: string
+          minLength: 1
+        imagem:
+          type: string
+          format: binary
+      required:
+      - pergunta
     Product:
       type: object
       properties:
@@ -1969,7 +2209,7 @@ components:
         price:
           type: string
           format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
         brand:
           type: string
           maxLength: 100
@@ -2027,7 +2267,7 @@ components:
         price:
           type: string
           format: decimal
-          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
         brand:
           type: string
           maxLength: 100
@@ -2122,14 +2362,6 @@ components:
       - password
       - password2
       - username
-    RoleEnum:
-      enum:
-      - admin
-      - customer
-      type: string
-      description: |-
-        * `admin` - Admin
-        * `customer` - Customer
     SalesReport:
       type: object
       properties:
@@ -2144,6 +2376,68 @@ components:
       - date
       - orders
       - revenue
+    Session:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        titulo:
+          type: string
+          maxLength: 255
+        message_count:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - message_count
+      - updated_at
+    SessionDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        titulo:
+          type: string
+          maxLength: 255
+        message_count:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - message_count
+      - messages
+      - updated_at
+    SessionRequest:
+      type: object
+      properties:
+        titulo:
+          type: string
+          maxLength: 255
     Stock:
       type: object
       properties:
@@ -2229,7 +2523,7 @@ components:
           maxLength: 150
         role:
           allOf:
-          - $ref: '#/components/schemas/RoleEnum'
+          - $ref: '#/components/schemas/UserRoleEnum'
           readOnly: true
         phone:
           type: string
@@ -2273,6 +2567,14 @@ components:
           type: string
       required:
       - username
+    UserRoleEnum:
+      enum:
+      - admin
+      - customer
+      type: string
+      description: |-
+        * `admin` - Admin
+        * `customer` - Customer
   securitySchemes:
     jwtAuth:
       type: http

@@ -13,6 +13,11 @@ const resolveMediaUrl = (url?: string | null): string | undefined => {
   return `${API_ORIGIN}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
+// Assistente de IA (app "ia") — não documentado no "E-Commerce API.yaml", mas vive no
+// backend real fora do prefixo /api/ (ex: https://.../ia/sessoes/), descoberto direto
+// no servidor de produção. Mantém sua própria base de URL por isso.
+const AI_BASE_URL = `${API_ORIGIN}/ia`;
+
 // ========== TIPOS (schemas do OpenAPI) ==========
 
 export type RoleEnum = 'admin' | 'customer';
@@ -177,6 +182,41 @@ export interface SalesReport {
   orders: number;
 }
 
+// ========== ASSISTENTE DE IA (app "ia", fora do /api/) ==========
+
+export type AiMessageRole = 'user' | 'assistant' | 'tool';
+
+export interface AiToolCall {
+  tool: string;
+  input: unknown;
+  output: unknown;
+}
+
+export interface AiMessage {
+  id: number;
+  role: AiMessageRole;
+  content: string;
+  tool_name: string | null;
+  tool_input: unknown;
+  tool_output: unknown;
+  image: string | null;
+  created_at: string;
+}
+
+export interface AiSession {
+  id: number;
+  titulo: string;
+  message_count: number;
+  created_at: string;
+  updated_at: string;
+  messages?: AiMessage[];
+}
+
+export interface AiAskResponse {
+  reply: string;
+  tool_calls?: AiToolCall[];
+}
+
 // Verificação de entrega
 export interface DeliveryCheckRequest {
   product_id: number;
@@ -271,16 +311,43 @@ const refreshAccessToken = async (): Promise<string | null> => {
   return refreshPromise;
 };
 
+// Extrai uma mensagem legível de um payload de erro do DRF, que pode vir como:
+// - string simples: "Mensagem"
+// - { detail: "Mensagem" } (erros de autenticação/permissão/404)
+// - { non_field_errors: ["Mensagem"] } (erros de validação sem campo específico)
+// - { campo: ["Mensagem"], outroCampo: [...] } (erros de validação por campo)
+const extractFieldError = (payload: unknown): string | null => {
+  if (typeof payload === 'string' && payload) return payload;
+  if (!payload || typeof payload !== 'object') return null;
+
+  const obj = payload as Record<string, unknown>;
+  if (typeof obj.detail === 'string' && obj.detail) return obj.detail;
+
+  const firstKey = Object.keys(obj)[0];
+  if (!firstKey) return null;
+  const value = obj[firstKey];
+  const message = Array.isArray(value) ? value[0] : value;
+  if (typeof message !== 'string' || !message) return null;
+
+  return firstKey === 'non_field_errors' || firstKey === 'detail' ? message : `${firstKey}: ${message}`;
+};
+
 const parseErrorMessage = async (response: Response): Promise<string> => {
   try {
     const data = await response.json();
-    if (typeof data === 'string') return data;
-    if (data?.detail) return data.detail;
-    const firstKey = Object.keys(data || {})[0];
-    if (firstKey) {
-      const value = data[firstKey];
-      return Array.isArray(value) ? `${firstKey}: ${value[0]}` : String(value);
+    if (typeof data === 'string' && data) return data;
+
+    // Envelope customizado do backend: { error: true, message, detail: <payload real> }.
+    // O payload de validação/erro de verdade fica em `detail`, não na raiz.
+    if (data && typeof data === 'object' && 'detail' in data) {
+      const fromDetail = extractFieldError(data.detail);
+      if (fromDetail) return fromDetail;
     }
+
+    if (typeof data?.message === 'string' && data.message) return data.message;
+
+    const fromRoot = extractFieldError(data);
+    if (fromRoot) return fromRoot;
   } catch {
     // resposta sem corpo JSON
   }
@@ -291,14 +358,18 @@ interface RequestOptions extends RequestInit {
   auth?: boolean; // inclui Authorization: Bearer (padrão: true)
 }
 
-const apiRequest = async <T>(endpoint: string, options: RequestOptions = {}): Promise<T> => {
+const apiRequest = async <T>(
+  endpoint: string,
+  options: RequestOptions = {},
+  baseUrl: string = API_BASE_URL
+): Promise<T> => {
   const { auth = true, headers, ...rest } = options;
-  const isFormData = rest.body instanceof FormData;
+  // FormData (upload de arquivo) e URLSearchParams (form-urlencoded) já definem seu
+  // próprio Content-Type/boundary — o navegador cuida disso, não podemos sobrescrever.
+  const hasSelfDescribingBody = rest.body instanceof FormData || rest.body instanceof URLSearchParams;
 
   const buildHeaders = (): HeadersInit => {
-    // Ao enviar FormData (upload de arquivo), não define Content-Type manualmente —
-    // o navegador precisa gerar o boundary do multipart/form-data sozinho.
-    const base: Record<string, string> = isFormData ? {} : { 'Content-Type': 'application/json' };
+    const base: Record<string, string> = hasSelfDescribingBody ? {} : { 'Content-Type': 'application/json' };
     if (auth) {
       const token = getAccessToken();
       if (token) base['Authorization'] = `Bearer ${token}`;
@@ -306,12 +377,12 @@ const apiRequest = async <T>(endpoint: string, options: RequestOptions = {}): Pr
     return { ...base, ...(headers as Record<string, string>) };
   };
 
-  let response = await fetch(`${API_BASE_URL}${endpoint}`, { ...rest, headers: buildHeaders() });
+  let response = await fetch(`${baseUrl}${endpoint}`, { ...rest, headers: buildHeaders() });
 
   if (response.status === 401 && auth && getRefreshToken()) {
     const newAccess = await refreshAccessToken();
     if (newAccess) {
-      response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      response = await fetch(`${baseUrl}${endpoint}`, {
         ...rest,
         headers: { ...buildHeaders(), Authorization: `Bearer ${newAccess}` },
       });
@@ -699,5 +770,55 @@ export const usersAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  },
+};
+
+// ========== ASSISTENTE DE IA (chat de compras) ==========
+// Vive em https://<backend>/ia/ — fora do prefixo /api/ — por isso usa AI_BASE_URL
+// em vez de API_BASE_URL. Rotas confirmadas direto no backend de produção:
+//   GET/POST   /ia/sessoes/
+//   GET/PUT/PATCH/DELETE /ia/sessoes/{id}/
+//   GET        /ia/sessoes/{id}/mensagens/
+//   POST       /ia/sessoes/{id}/perguntar/
+export const aiAPI = {
+  listSessions: async (page = 1): Promise<Paginated<AiSession>> => {
+    return apiRequest(`/sessoes/?page=${page}`, {}, AI_BASE_URL);
+  },
+
+  getSession: async (id: number): Promise<AiSession> => {
+    return apiRequest(`/sessoes/${id}/`, {}, AI_BASE_URL);
+  },
+
+  createSession: async (titulo?: string): Promise<AiSession> => {
+    return apiRequest(
+      '/sessoes/',
+      { method: 'POST', body: JSON.stringify(titulo ? { titulo } : {}) },
+      AI_BASE_URL
+    );
+  },
+
+  getMessages: async (sessionId: number): Promise<AiMessage[]> => {
+    return apiRequest(`/sessoes/${sessionId}/mensagens/`, {}, AI_BASE_URL);
+  },
+
+  // O endpoint /perguntar/ só aceita form-urlencoded/multipart (confirmado no backend
+  // real — envia JSON e ele responde 415 Unsupported Media Type), nunca JSON puro.
+  // Body vai como string (não a instância URLSearchParams) com o Content-Type explícito
+  // porque alguns interceptors de teste (MSW) falham na checagem `instanceof
+  // URLSearchParams` entre realms diferentes — como string funciona igual no navegador.
+  ask: async (sessionId: number, pergunta: string): Promise<AiAskResponse> => {
+    return apiRequest(
+      `/sessoes/${sessionId}/perguntar/`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ pergunta }).toString(),
+      },
+      AI_BASE_URL
+    );
+  },
+
+  deleteSession: async (id: number): Promise<void> => {
+    return apiRequest(`/sessoes/${id}/`, { method: 'DELETE' }, AI_BASE_URL);
   },
 };
