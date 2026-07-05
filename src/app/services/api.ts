@@ -377,15 +377,33 @@ const apiRequest = async <T>(
     return { ...base, ...(headers as Record<string, string>) };
   };
 
-  let response = await fetch(`${baseUrl}${endpoint}`, { ...rest, headers: buildHeaders() });
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}${endpoint}`, { ...rest, headers: buildHeaders() });
+  } catch {
+    // fetch rejeita (sem status HTTP) em falha de rede, DNS ou bloqueio de CORS — o
+    // navegador não expõe o motivo exato ao JS, então damos uma mensagem acionável
+    // em vez do "Failed to fetch" bruto do browser.
+    throw new ApiError(
+      0,
+      'Não foi possível conectar ao servidor. Verifique sua conexão ou se o backend permite requisições desta origem (CORS).'
+    );
+  }
 
   if (response.status === 401 && auth && getRefreshToken()) {
     const newAccess = await refreshAccessToken();
     if (newAccess) {
-      response = await fetch(`${baseUrl}${endpoint}`, {
-        ...rest,
-        headers: { ...buildHeaders(), Authorization: `Bearer ${newAccess}` },
-      });
+      try {
+        response = await fetch(`${baseUrl}${endpoint}`, {
+          ...rest,
+          headers: { ...buildHeaders(), Authorization: `Bearer ${newAccess}` },
+        });
+      } catch {
+        throw new ApiError(
+          0,
+          'Não foi possível conectar ao servidor. Verifique sua conexão ou se o backend permite requisições desta origem (CORS).'
+        );
+      }
     } else {
       clearTokens();
     }

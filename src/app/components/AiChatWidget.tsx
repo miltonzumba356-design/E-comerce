@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { Bot, Loader2, Send, Sparkles } from 'lucide-react';
+import { Bot, Loader2, RotateCcw, Send, Sparkles } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './ui/sheet';
 import { Button } from './ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -25,7 +25,7 @@ function renderInline(content: string) {
 }
 
 export function AiChatWidget() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -37,8 +37,15 @@ export function AiChatWidget() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, isSending]);
 
-  // Sem sessão logada não há como autenticar em /ia/ (exige Bearer no backend).
-  if (!isAuthenticated) return null;
+  // Sem sessão logada não há como autenticar em /ia/ (exige Bearer no backend). Também
+  // evita o flash do botão antes do AuthProvider terminar de checar o token salvo.
+  if (isLoading || !isAuthenticated) return null;
+
+  const handleNewConversation = () => {
+    setSessionId(null);
+    setMessages([]);
+    setInput('');
+  };
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,11 +92,23 @@ export function AiChatWidget() {
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent className="flex w-full flex-col p-0 sm:max-w-md">
-          <SheetHeader className="border-b px-4 py-3">
+          <SheetHeader className="flex-row items-center justify-between border-b px-4 py-3 space-y-0">
             <SheetTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
               Assistente de Compras
             </SheetTitle>
+            {messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNewConversation}
+                disabled={isSending}
+                className="mr-6"
+              >
+                <RotateCcw className="mr-2 h-3.5 w-3.5" />
+                Nova conversa
+              </Button>
+            )}
           </SheetHeader>
 
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">

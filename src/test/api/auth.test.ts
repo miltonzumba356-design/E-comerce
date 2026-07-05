@@ -170,4 +170,11 @@ describe('authAPI', () => {
     );
     expect(error.message).toBe('password: Passwords do not match.');
   });
+
+  it('falha de rede/CORS (fetch rejeita sem resposta) vira uma mensagem acionável, não o erro bruto do navegador', async () => {
+    server.use(http.post('*/api/auth/login/', () => HttpResponse.error()));
+
+    const error: any = await rejects(authAPI.login({ email: 'x@example.com', password: 'y' }));
+    expect(error.message).toMatch(/CORS/);
+  });
 });
