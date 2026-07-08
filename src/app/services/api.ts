@@ -634,7 +634,7 @@ export const cartAPI = {
   addItem: async (productId: number, quantity: number): Promise<Cart> => {
     const result = await apiRequest<Cart>('/cart/add/', {
       method: 'POST',
-      body: JSON.stringify({ product: productId, quantity }),
+      body: JSON.stringify({ product_id: productId, quantity }),
     });
     return normalizeCart(result);
   },

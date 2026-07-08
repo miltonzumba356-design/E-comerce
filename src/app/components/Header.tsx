@@ -26,10 +26,10 @@ export function Header({ topOffset = 0 }: HeaderProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
 
-  // Navegação gerada a partir das categorias reais cadastradas no backend
+  // Navegação com Início + as duas primeiras categorias cadastradas no backend
   const menuItems = [
     { name: 'Início', to: '/' },
-    ...categories.map((category) => ({ name: category.name, to: `/?category=${category.slug}` })),
+    ...categories.slice(0, 2).map((category) => ({ name: category.name, to: `/?category=${category.slug}` })),
   ];
 
   const handleProfileClick = () => {
