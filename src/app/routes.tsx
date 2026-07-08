@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import { ReactNode } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import HomePage from './pages/HomePage';
+import ProductDetailPage from './pages/ProductDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CustomerDashboard from './pages/CustomerDashboard';
@@ -44,6 +45,10 @@ export const router = createBrowserRouter([
   {
     path: '/',
     Component: HomePage,
+  },
+  {
+    path: '/produto/:slug',
+    Component: ProductDetailPage,
   },
   {
     path: '/login',

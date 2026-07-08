@@ -43,6 +43,10 @@ export interface Category {
   description?: string;
 }
 
+// Tipo de pele — filtro "By Skin Type" da loja. Ainda não existe no backend,
+// ver BACKEND_PRODUCT_FILTERS.md para o que precisa ser adicionado.
+export type SkinTypeEnum = 'normal' | 'oily' | 'dry' | 'combination' | 'sensitive';
+
 export interface Product {
   id: number;
   category: string; // slug da categoria (escrita)
@@ -61,6 +65,14 @@ export interface Product {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // Campos ainda não implementados no backend — ver BACKEND_PRODUCT_FILTERS.md.
+  rating?: number;
+  review_count?: number;
+  skin_type?: SkinTypeEnum;
+  original_price?: string | null;
+  is_best_seller?: boolean;
+  is_new_arrival?: boolean;
+  in_stock?: boolean;
 }
 
 export interface CartItem {
