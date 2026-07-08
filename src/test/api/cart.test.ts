@@ -25,7 +25,7 @@ describe('cartAPI', () => {
     expect(cart.id).toBe(5);
   });
 
-  it('addItem envia {product, quantity} — não o objeto Cart inteiro', async () => {
+  it('addItem envia {product_id, quantity} — não o objeto Cart inteiro', async () => {
     let capturedBody: any = null;
     server.use(
       http.post('*/api/cart/add/', async ({ request }) => {
@@ -35,7 +35,7 @@ describe('cartAPI', () => {
     );
 
     await cartAPI.addItem(10, 3);
-    expect(capturedBody).toEqual({ product: 10, quantity: 3 });
+    expect(capturedBody).toEqual({ product_id: 10, quantity: 3 });
   });
 
   it('updateQuantity envia somente {quantity}', async () => {

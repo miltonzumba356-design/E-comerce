@@ -188,7 +188,7 @@ export const handlers = [
       items: [
         {
           id: 100,
-          product: body.product,
+          product: body.product_id,
           product_detail: product,
           quantity: body.quantity,
           subtotal: '50000.00',
