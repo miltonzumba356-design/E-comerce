@@ -517,11 +517,16 @@ export const productsAPI = {
   },
 
   getByCategory: async (categorySlug: string): Promise<Product[]> => {
-    const data = await apiRequest<Product[]>(
-      `/products/by_category/?category=${encodeURIComponent(categorySlug)}`,
+    // O endpoint espera o slug da categoria no parâmetro 'slug' (conforme a
+    // descrição no schema OpenAPI), não 'category'. A resposta documentada é um
+    // único Product, mas a operação é descrita como "lista paginada" — aceita
+    // ambos os formatos, como já é feito em cartAPI.get().
+    const data = await apiRequest<Paginated<Product> | Product[] | Product>(
+      `/products/by_category/?slug=${encodeURIComponent(categorySlug)}`,
       { auth: false }
     );
-    return data.map(normalizeProduct);
+    const products = Array.isArray(data) ? data : 'results' in data ? data.results : [data];
+    return products.map(normalizeProduct);
   },
 
   // `imageFile`: File novo faz upload; `null` remove a imagem existente
@@ -632,19 +637,22 @@ export const cartAPI = {
   },
 
   addItem: async (productId: number, quantity: number): Promise<Cart> => {
-    const result = await apiRequest<Cart>('/cart/add/', {
+    // O backend real não retorna o objeto Cart completo aqui (diverge do schema
+    // documentado) — em vez de depender do formato da resposta, busca o carrinho
+    // atualizado com GET /cart/, que já trata as divergências conhecidas.
+    await apiRequest('/cart/add/', {
       method: 'POST',
       body: JSON.stringify({ product_id: productId, quantity }),
     });
-    return normalizeCart(result);
+    return cartAPI.get();
   },
 
   updateQuantity: async (itemId: number, quantity: number): Promise<Cart> => {
-    const result = await apiRequest<Cart>(`/cart/${itemId}/update_quantity/`, {
+    await apiRequest(`/cart/${itemId}/update_quantity/`, {
       method: 'PATCH',
       body: JSON.stringify({ quantity }),
     });
-    return normalizeCart(result);
+    return cartAPI.get();
   },
 
   removeItem: async (itemId: number): Promise<void> => {

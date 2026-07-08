@@ -16,7 +16,7 @@ describe('productsAPI', () => {
     expect(product.slug).toBe('vestido-elegante');
   });
 
-  it('getByCategory envia a categoria como query param', async () => {
+  it('getByCategory envia o slug da categoria no param "slug"', async () => {
     let capturedUrl = '';
     server.use(
       http.get('*/api/products/by_category/', ({ request }) => {
@@ -26,7 +26,7 @@ describe('productsAPI', () => {
     );
 
     await productsAPI.getByCategory('vestidos');
-    expect(capturedUrl).toContain('category=vestidos');
+    expect(capturedUrl).toContain('slug=vestidos');
   });
 
   it('create exige Authorization: Bearer', async () => {
