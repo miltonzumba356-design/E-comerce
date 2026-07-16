@@ -80,10 +80,10 @@ export default function ReportsPage() {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 space-y-0">
           <CardTitle>Relatório de Vendas</CardTitle>
           <Select value={days} onValueChange={setDays}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -140,10 +140,10 @@ export default function ReportsPage() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 space-y-0">
           <CardTitle>Mais Vendidos</CardTitle>
           <Select value={salesLimit} onValueChange={setSalesLimit}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-full sm:w-32">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

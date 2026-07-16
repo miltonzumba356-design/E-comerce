@@ -55,7 +55,7 @@ export function FavoritesDialog({ open, onOpenChange }: FavoritesDialogProps) {
                       />
                     </div>
 
-                    <div className="flex-1 space-y-2">
+                    <div className="flex-1 min-w-0 space-y-2">
                       <div>
                         <h4 className="text-sm mb-1">{product.name}</h4>
                         <Badge variant="outline" className="text-xs">

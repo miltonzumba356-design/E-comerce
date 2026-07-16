@@ -191,13 +191,13 @@ export function ProfileDialog({ open, onOpenChange }: ProfileDialogProps) {
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                <h3 className="text-2xl mb-1">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-2xl mb-1 truncate">
                   {user.first_name} {user.last_name}
                 </h3>
-                <p className="text-muted-foreground">{user.email}</p>
-                {user.phone && <p className="text-sm text-muted-foreground mt-1">{user.phone}</p>}
-                {user.address && <p className="text-sm text-muted-foreground mt-1">{user.address}</p>}
+                <p className="text-muted-foreground truncate">{user.email}</p>
+                {user.phone && <p className="text-sm text-muted-foreground mt-1 truncate">{user.phone}</p>}
+                {user.address && <p className="text-sm text-muted-foreground mt-1 truncate">{user.address}</p>}
               </div>
               <Button variant="outline" size="icon" onClick={handleStartEdit} title="Editar perfil">
                 <Pencil className="h-4 w-4" />

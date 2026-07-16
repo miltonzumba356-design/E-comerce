@@ -2,13 +2,13 @@
 
 :root {
   --font-size: 16px;
-  --card: #f5f4ef;
+  --card: #ffffff;
   --ring: #c96442;
   --input: #b4b2a7;
   --muted: #ede9de;
   --accent: #e9e6dc;
-  --border: #dad9d4;
-  --radius: 1rem;
+  --border: #e6e3da;
+  --radius: 1.25rem;
   --chart-1: #b05730;
   --chart-2: #9c87f5;
   --chart-3: #ded8c4;
@@ -16,6 +16,8 @@
   --chart-5: #b4552d;
   --popover: #ffffff;
   --primary: #c96442;
+  --brand-accent: #c96442;
+  --brand-gold: #b08c10;
   --sidebar: #f5f4ee;
   --spacing: 0.25rem;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
@@ -23,7 +25,7 @@
   --secondary: #e9e6dc;
   --background: #faf9f5;
   --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-  --foreground: #3d3929;
+  --foreground: #201d17;
   --destructive: #d4183d;
   --shadow-blur: 3px;
   --shadow-color: oklch(0 0 0);
@@ -59,7 +61,7 @@
   --muted: #1b1b19;
   --accent: #1a1915;
   --border: #3e3e38;
-  --radius: 1rem;
+  --radius: 1.25rem;
   --chart-1: #b05730;
   --chart-2: #9c87f5;
   --chart-3: #1a1915;
@@ -67,6 +69,8 @@
   --chart-5: #b4552d;
   --popover: #30302e;
   --primary: #d97757;
+  --brand-accent: #d97757;
+  --brand-gold: #d4ac2b;
   --sidebar: #1f1e1d;
   --spacing: 0.25rem;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
@@ -112,6 +116,8 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-gold: var(--brand-gold);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);

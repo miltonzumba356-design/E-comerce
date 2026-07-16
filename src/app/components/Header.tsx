@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Menu, Search, User, Heart, LogOut, LayoutDashboard } from 'lucide-react';
 import { Button } from './ui/button';
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
 import { ShoppingCartSheet } from './ShoppingCart';
 import { useShop } from './ShopContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -42,7 +42,7 @@ export function Header({ topOffset = 0 }: HeaderProps) {
 
   return (
     <header
-      className="fixed inset-x-0 z-50 w-full border-b bg-white shadow-sm"
+      className="fixed inset-x-0 z-50 w-full border-b bg-background shadow-sm"
       style={{ top: topOffset }}
     >
       <div className="container mx-auto px-4 py-4">
@@ -99,43 +99,81 @@ export function Header({ topOffset = 0 }: HeaderProps) {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent>
-                <nav className="flex flex-col gap-4 mt-8">
-                  {menuItems.map((item) => (
-                    <Link key={item.name} to={item.to} className="text-lg text-gray-700 hover:text-black transition-colors">
-                      {item.name}
-                    </Link>
-                  ))}
+              <SheetContent className="flex flex-col gap-0 p-0">
+                <SheetHeader className="border-b">
+                  <SheetTitle>
+                    <Logo size={32} nameClassName="text-lg font-bold" />
+                  </SheetTitle>
+                </SheetHeader>
 
-                  <div className="border-t pt-4 mt-4 space-y-2">
-                    <Button variant="outline" className="w-full justify-start" onClick={() => setSearchOpen(true)}>
-                      <Search className="h-5 w-5 mr-2" />
+                <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
+                  <p className="px-3 pb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Navegação
+                  </p>
+                  <div className="space-y-1 mb-6">
+                    {menuItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        to={item.to}
+                        className="flex items-center rounded-xl px-3 py-2.5 text-foreground hover:bg-accent transition-colors"
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+
+                  <p className="px-3 pb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Conta
+                  </p>
+                  <div className="space-y-1">
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-accent transition-colors"
+                      onClick={() => setSearchOpen(true)}
+                    >
+                      <Search className="h-5 w-5 text-muted-foreground" />
                       Buscar
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start" onClick={handleProfileClick}>
-                      <User className="h-5 w-5 mr-2" />
+                    </button>
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-accent transition-colors"
+                      onClick={handleProfileClick}
+                    >
+                      <User className="h-5 w-5 text-muted-foreground" />
                       Meu Perfil
-                    </Button>
+                    </button>
                     {user?.role === 'admin' && (
-                      <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/admin')}>
-                        <LayoutDashboard className="h-5 w-5 mr-2" />
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-accent transition-colors"
+                        onClick={() => navigate('/admin')}
+                      >
+                        <LayoutDashboard className="h-5 w-5 text-muted-foreground" />
                         Painel Admin
-                      </Button>
+                      </button>
                     )}
-                    <Button variant="outline" className="w-full justify-start relative" onClick={() => setFavoritesOpen(true)}>
-                      <Heart className="h-5 w-5 mr-2" />
+                    <button
+                      type="button"
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-accent transition-colors"
+                      onClick={() => setFavoritesOpen(true)}
+                    >
+                      <Heart className="h-5 w-5 text-muted-foreground" />
                       Favoritos
                       {favorites.length > 0 && (
-                        <span className="ml-auto h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+                        <span className="ml-auto h-5 min-w-5 px-1 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
                           {favorites.length}
                         </span>
                       )}
-                    </Button>
+                    </button>
                     {isAuthenticated && (
-                      <Button variant="outline" className="w-full justify-start" onClick={logout}>
-                        <LogOut className="h-5 w-5 mr-2" />
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-destructive hover:bg-destructive/10 transition-colors"
+                        onClick={logout}
+                      >
+                        <LogOut className="h-5 w-5" />
                         Sair
-                      </Button>
+                      </button>
                     )}
                   </div>
                 </nav>

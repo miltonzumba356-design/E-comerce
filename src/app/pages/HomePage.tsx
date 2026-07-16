@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { TopBar } from '../components/TopBar';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { FeatureStrip } from '../components/FeatureStrip';
+import { PromoBanner } from '../components/PromoBanner';
 import { ProductGrid } from '../components/ProductGrid';
 import {
   ShopFilters,
@@ -16,7 +17,6 @@ import {
   type AvailabilityFilter,
 } from '../components/ShopFilters';
 import { ShopToolbar, type SortOption, type ActiveFilterChip } from '../components/ShopToolbar';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '../components/ui/breadcrumb';
 import { Button } from '../components/ui/button';
 import { useCatalog } from '../contexts/CatalogContext';
 import { useCurrency } from '../hooks/useCurrency';
@@ -213,31 +213,15 @@ export default function HomePage() {
     });
   }
 
+  const activeFilterCount = activeChips.length;
+
   return (
     <div className="min-h-screen">
       <TopBar />
       <Header topOffset={TOP_BAR_HEIGHT} />
 
       <main className="pt-24 sm:pt-28" style={{ marginTop: TOP_BAR_HEIGHT }}>
-        {/* Banner da página */}
-        <div className="bg-gray-50 py-10 border-b">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-3xl font-bold mb-2">Loja</h1>
-            <Breadcrumb className="justify-center flex">
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to="/">Início</Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Loja</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
-        </div>
+        {!isLoading && <PromoBanner products={products} />}
 
         <div className="container mx-auto px-4 py-10">
           {isLoading ? (
@@ -245,73 +229,73 @@ export default function HomePage() {
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
             </div>
           ) : (
-            <div className="flex flex-col lg:flex-row gap-8">
-              <ShopFilters
-                allCategories={categories}
-                priceBounds={priceBounds}
-                filters={filters}
-                onToggleCategory={toggleCategory}
-                onToggleSkinType={toggleSkinType}
-                onPriceRangeChange={setPriceRange}
-                onToggleRating={toggleRating}
-                onTogglePromotion={togglePromotion}
-                onToggleAvailability={toggleAvailability}
+            <div className="min-w-0">
+              <ShopToolbar
+                totalResults={sortedProducts.length}
+                rangeStart={rangeStart}
+                rangeEnd={rangeEnd}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+                activeChips={activeChips}
                 onClearAll={clearAll}
+                filtersSlot={
+                  <ShopFilters
+                    allCategories={categories}
+                    priceBounds={priceBounds}
+                    filters={filters}
+                    activeCount={activeFilterCount}
+                    onToggleCategory={toggleCategory}
+                    onToggleSkinType={toggleSkinType}
+                    onPriceRangeChange={setPriceRange}
+                    onToggleRating={toggleRating}
+                    onTogglePromotion={togglePromotion}
+                    onToggleAvailability={toggleAvailability}
+                    onClearAll={clearAll}
+                  />
+                }
               />
 
-              <div className="flex-1 min-w-0">
-                <ShopToolbar
-                  totalResults={sortedProducts.length}
-                  rangeStart={rangeStart}
-                  rangeEnd={rangeEnd}
-                  sortBy={sortBy}
-                  onSortChange={setSortBy}
-                  activeChips={activeChips}
-                  onClearAll={clearAll}
-                />
+              <ProductGrid
+                products={pageProducts}
+                emptyMessage="Nenhum produto encontrado com os filtros selecionados."
+              />
 
-                <ProductGrid
-                  products={pageProducts}
-                  emptyMessage="Nenhum produto encontrado com os filtros selecionados."
-                />
-
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-1 mt-10">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={currentPage === 1}
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    {getPageNumbers(currentPage, totalPages).map((entry, index) =>
-                      entry === 'ellipsis' ? (
-                        <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground">
-                          …
-                        </span>
-                      ) : (
-                        <Button
-                          key={entry}
-                          variant={entry === currentPage ? 'default' : 'ghost'}
-                          size="icon"
-                          onClick={() => setPage(entry)}
-                        >
-                          {entry}
-                        </Button>
-                      )
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={currentPage === totalPages}
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center flex-wrap gap-1 mt-10">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={currentPage === 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {getPageNumbers(currentPage, totalPages).map((entry, index) =>
+                    entry === 'ellipsis' ? (
+                      <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground">
+                        …
+                      </span>
+                    ) : (
+                      <Button
+                        key={entry}
+                        variant={entry === currentPage ? 'default' : 'ghost'}
+                        size="icon"
+                        onClick={() => setPage(entry)}
+                      >
+                        {entry}
+                      </Button>
+                    )
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -47,7 +47,9 @@ export function ProductCard({ product }: { product: Product }) {
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
         {discountPercent !== null && (
-          <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">-{discountPercent}%</Badge>
+          <Badge className="absolute top-3 left-3 bg-brand-accent text-white border-transparent">
+            -{discountPercent}%
+          </Badge>
         )}
         <Button
           variant="ghost"
@@ -89,7 +91,7 @@ export function ProductCard({ product }: { product: Product }) {
           }}
         >
           <ShoppingBag className="h-4 w-4 mr-2" />
-          Adicionar ao Carrinho
+          Adicionar
         </Button>
       </div>
     </div>

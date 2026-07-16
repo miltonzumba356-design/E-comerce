@@ -27,6 +27,7 @@ interface ShopToolbarProps {
   onSortChange: (value: SortOption) => void;
   activeChips: ActiveFilterChip[];
   onClearAll: () => void;
+  filtersSlot?: React.ReactNode;
 }
 
 export function ShopToolbar({
@@ -37,6 +38,7 @@ export function ShopToolbar({
   onSortChange,
   activeChips,
   onClearAll,
+  filtersSlot,
 }: ShopToolbarProps) {
   return (
     <div className="mb-6">
@@ -47,20 +49,23 @@ export function ShopToolbar({
             : `Mostrando ${rangeStart}-${rangeEnd} de ${totalResults} resultados`}
         </p>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">Ordenar por:</span>
-          <Select value={sortBy} onValueChange={(value) => onSortChange(value as SortOption)}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SORT_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex items-center gap-2 flex-wrap">
+          {filtersSlot}
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:inline text-sm text-muted-foreground whitespace-nowrap">Ordenar por:</span>
+            <Select value={sortBy} onValueChange={(value) => onSortChange(value as SortOption)}>
+              <SelectTrigger className="w-40 sm:w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SORT_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 

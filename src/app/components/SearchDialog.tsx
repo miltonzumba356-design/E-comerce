@@ -85,8 +85,8 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                     alt={product.name}
                     className="w-20 h-20 object-cover rounded-md"
                   />
-                  <div className="flex-1">
-                    <h4 className="mb-1">{product.name}</h4>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="mb-1 truncate">{product.name}</h4>
                     <Badge variant="outline" className="text-xs mb-2">
                       {product.category_detail?.name}
                     </Badge>

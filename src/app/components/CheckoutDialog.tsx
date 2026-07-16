@@ -7,12 +7,14 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { MapPin, Phone, Banknote, Landmark, CreditCard, Loader2, Truck, CheckCircle2, XCircle } from 'lucide-react';
+import { MapPin, Phone, Banknote, Loader2, Truck, CheckCircle2, XCircle, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { useShop } from './ShopContext';
 import { ordersAPI, paymentsAPI, DeliveryCheckResponse } from '../services/api';
 import { useCurrency } from '../hooks/useCurrency';
+import cartaoImage from '../../assets/payments/cartao.png';
+import transferenciaImage from '../../assets/payments/transferencia-bancaria.jpeg';
 
 interface CheckoutDialogProps {
   open: boolean;
@@ -22,9 +24,15 @@ interface CheckoutDialogProps {
 }
 
 const PAYMENT_METHODS = [
-  { value: 'cash_on_delivery', label: 'Pagamento na entrega', icon: Banknote },
-  { value: 'bank_transfer', label: 'Transferência bancária', icon: Landmark },
-  { value: 'card', label: 'Cartão', icon: CreditCard },
+  { value: 'cash_on_delivery', label: 'Pagamento na entrega', description: 'Pague em dinheiro ao receber', icon: Banknote, image: null },
+  {
+    value: 'bank_transfer',
+    label: 'Transferência bancária',
+    description: 'Multicaixa Express',
+    icon: null,
+    image: transferenciaImage,
+  },
+  { value: 'card', label: 'Cartão', description: 'Multicaixa', icon: null, image: cartaoImage },
 ];
 
 interface DeliveryResult extends DeliveryCheckResponse {
@@ -228,13 +236,9 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
               )}
             </div>
 
-            <Separator />
-
-            <div className="flex justify-between items-center pt-2">
-              <div>
-                <p className="text-sm text-gray-600">Total da compra:</p>
-                <p className="text-2xl">{total}</p>
-              </div>
+            <div className="bg-secondary/40 border p-4 rounded-2xl flex justify-between items-center">
+              <span className="text-muted-foreground">Total da compra</span>
+              <span className="text-xl font-semibold">{total}</span>
             </div>
 
             <Button onClick={handleNextStep} className="w-full" size="lg">
@@ -244,46 +248,48 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
         ) : (
           <div className="space-y-6 py-4">
             <RadioGroup value={method} onValueChange={setMethod} className="space-y-3">
-              {PAYMENT_METHODS.map(({ value, label, icon: Icon }) => (
+              {PAYMENT_METHODS.map(({ value, label, description, icon: Icon, image }) => (
                 <label
                   key={value}
                   htmlFor={value}
-                  className={`flex items-center gap-3 border rounded-lg p-4 cursor-pointer transition-colors ${
-                    method === value ? 'border-primary bg-primary/5' : 'border-gray-200'
+                  className={`flex items-center gap-4 border rounded-2xl p-4 cursor-pointer transition-colors ${
+                    method === value ? 'border-primary bg-primary/5' : 'border-border hover:bg-accent/50'
                   }`}
                 >
                   <RadioGroupItem value={value} id={value} />
-                  <Icon className="h-5 w-5 text-muted-foreground" />
-                  <span>{label}</span>
+                  <div className="h-11 w-11 shrink-0 rounded-xl border bg-white overflow-hidden flex items-center justify-center">
+                    {image ? (
+                      <img src={image} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      Icon && <Icon className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium">{label}</p>
+                    <p className="text-sm text-muted-foreground">{description}</p>
+                  </div>
                 </label>
               ))}
             </RadioGroup>
 
-            <Separator />
-
-            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+            <div className="bg-secondary/40 border p-4 rounded-2xl space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Telefone:</span>
-                <span>{phone}</span>
+                <span className="text-muted-foreground">Telefone</span>
+                <span className="font-medium">{phone}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Entrega:</span>
-                <span className="text-right max-w-[60%]">{shippingAddress}</span>
+              <div className="flex justify-between text-sm gap-4">
+                <span className="text-muted-foreground shrink-0">Entrega</span>
+                <span className="font-medium text-right">{shippingAddress}</span>
               </div>
               <Separator />
-              <div className="flex justify-between items-center pt-2">
-                <span>Total:</span>
-                <span className="text-xl">{total}</span>
+              <div className="flex justify-between items-center pt-1">
+                <span className="font-medium">Total</span>
+                <span className="text-xl font-semibold">{total}</span>
               </div>
             </div>
 
             <div className="space-y-3">
-              <Button
-                onClick={handleFinishCheckout}
-                className="w-full bg-green-600 hover:bg-green-700"
-                size="lg"
-                disabled={isSubmitting}
-              >
+              <Button onClick={handleFinishCheckout} className="w-full" size="lg" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                 ) : (
