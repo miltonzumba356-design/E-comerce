@@ -118,9 +118,52 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
     }
   };
 
+  // Pagamento na entrega usa /orders/delivery-check/ em vez de /orders/ + /payments/process/
+  // — apenas confirma disponibilidade de entrega por item, não gera pedido/pagamento no backend.
+  const handleFinishCheckoutOnDelivery = async () => {
+    if (!postalCode.trim()) {
+      toast.error('Insira um código postal para confirmar a entrega');
+      return;
+    }
+
+    const results = await Promise.all(
+      cart.map(async (line) => {
+        const result = await ordersAPI.checkDelivery({
+          product_id: line.product.id,
+          postal_code: postalCode.trim(),
+          quantity: line.quantity,
+        });
+        return { ...result, productName: line.product.name };
+      })
+    );
+    setDeliveryResults(results);
+
+    const unavailable = results.find((r) => !r.available);
+    if (unavailable) {
+      toast.error(`Entrega indisponível para ${unavailable.productName} nesse código postal`);
+      return;
+    }
+
+    await clearCart();
+    toast.success('Pedido confirmado para pagamento na entrega!', {
+      description: 'Nossa equipe vai entrar em contacto para combinar a entrega',
+      duration: 5000,
+    });
+
+    setStep('address');
+    onCheckoutComplete();
+    onOpenChange(false);
+    navigate('/dashboard');
+  };
+
   const handleFinishCheckout = async () => {
     setIsSubmitting(true);
     try {
+      if (method === 'cash_on_delivery') {
+        await handleFinishCheckoutOnDelivery();
+        return;
+      }
+
       const order = await ordersAPI.create(shippingAddress.trim(), method);
       await paymentsAPI.process(order.id, method);
       await clearCart();
@@ -271,6 +314,12 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
                 </label>
               ))}
             </RadioGroup>
+
+            {method === 'cash_on_delivery' && !postalCode.trim() && (
+              <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                Volte para "Endereço" e informe o código postal para confirmarmos a entrega.
+              </p>
+            )}
 
             <div className="bg-secondary/40 border p-4 rounded-2xl space-y-2">
               <div className="flex justify-between text-sm">
