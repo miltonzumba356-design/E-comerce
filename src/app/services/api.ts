@@ -675,10 +675,10 @@ export const ordersAPI = {
     return apiRequest(`/orders/${id}/`);
   },
 
-  create: async (shippingAddress: string): Promise<Order> => {
+  create: async (shippingAddress: string, paymentMethod: string): Promise<Order> => {
     return apiRequest('/orders/', {
       method: 'POST',
-      body: JSON.stringify({ shipping_address: shippingAddress }),
+      body: JSON.stringify({ shipping_address: shippingAddress, payment_method: paymentMethod }),
     });
   },
 

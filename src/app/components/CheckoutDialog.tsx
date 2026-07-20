@@ -121,7 +121,7 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
   const handleFinishCheckout = async () => {
     setIsSubmitting(true);
     try {
-      const order = await ordersAPI.create(shippingAddress.trim());
+      const order = await ordersAPI.create(shippingAddress.trim(), method);
       await paymentsAPI.process(order.id, method);
       await clearCart();
 
