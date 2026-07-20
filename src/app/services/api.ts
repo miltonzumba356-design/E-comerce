@@ -757,6 +757,13 @@ export const inventoryAPI = {
 
 // ========== RELATÓRIOS (ADMIN) ==========
 
+// O spec documenta resposta paginada ({results: [...]}) para os relatórios abaixo, mas o
+// backend às vezes devolve um array puro (mesmo tipo de divergência já visto em outros
+// endpoints) — normaliza para sempre expor `.results`, evitando "Cannot read properties
+// of undefined (reading 'length')" nas telas que consomem esses dados.
+const normalizePaginated = <T,>(data: Paginated<T> | T[]): Paginated<T> =>
+  Array.isArray(data) ? { count: data.length, next: null, previous: null, results: data } : data;
+
 export const reportsAPI = {
   // GET /reports/ — lista os endpoints de relatórios disponíveis (shape genérico).
   list: async (): Promise<unknown> => {
@@ -768,19 +775,31 @@ export const reportsAPI = {
   },
 
   getSales: async (days = 30, page = 1, pageSize = 50): Promise<Paginated<SalesReport>> => {
-    return apiRequest(`/reports/sales/?days=${days}&page=${page}&page_size=${pageSize}`);
+    const data = await apiRequest<Paginated<SalesReport> | SalesReport[]>(
+      `/reports/sales/?days=${days}&page=${page}&page_size=${pageSize}`
+    );
+    return normalizePaginated(data);
   },
 
   getBestSellers: async (limit = 10, page = 1, pageSize = 50): Promise<Paginated<BestSeller>> => {
-    return apiRequest(`/reports/best_sellers/?limit=${limit}&page=${page}&page_size=${pageSize}`);
+    const data = await apiRequest<Paginated<BestSeller> | BestSeller[]>(
+      `/reports/best_sellers/?limit=${limit}&page=${page}&page_size=${pageSize}`
+    );
+    return normalizePaginated(data);
   },
 
   getMonthlyRevenue: async (months = 6, page = 1, pageSize = 50): Promise<Paginated<MonthlyRevenue>> => {
-    return apiRequest(`/reports/monthly_revenue/?months=${months}&page=${page}&page_size=${pageSize}`);
+    const data = await apiRequest<Paginated<MonthlyRevenue> | MonthlyRevenue[]>(
+      `/reports/monthly_revenue/?months=${months}&page=${page}&page_size=${pageSize}`
+    );
+    return normalizePaginated(data);
   },
 
   getOrdersByStatus: async (page = 1, pageSize = 50): Promise<Paginated<OrderStatusCount>> => {
-    return apiRequest(`/reports/orders_by_status/?page=${page}&page_size=${pageSize}`);
+    const data = await apiRequest<Paginated<OrderStatusCount> | OrderStatusCount[]>(
+      `/reports/orders_by_status/?page=${page}&page_size=${pageSize}`
+    );
+    return normalizePaginated(data);
   },
 };
 

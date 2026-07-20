@@ -87,4 +87,30 @@ describe('reportsAPI', () => {
     const data = await reportsAPI.list();
     expect(Array.isArray(data)).toBe(true);
   });
+
+  it('getSales normaliza um array puro (sem envelope paginado) em {results}', async () => {
+    localStorage.setItem('access_token', 'valid-access-token');
+    server.use(
+      http.get('*/api/reports/sales/', () =>
+        HttpResponse.json([{ date: '2026-07-01', revenue: 1000, orders: 1 }])
+      )
+    );
+
+    const data = await reportsAPI.getSales(90);
+    expect(data.results).toHaveLength(1);
+    expect(data.results[0].date).toBe('2026-07-01');
+  });
+
+  it('getBestSellers normaliza um array puro (sem envelope paginado) em {results}', async () => {
+    localStorage.setItem('access_token', 'valid-access-token');
+    server.use(
+      http.get('*/api/reports/best_sellers/', () =>
+        HttpResponse.json([{ product_name: 'Vestido', product__id: 1, total_sold: 5, total_revenue: 500 }])
+      )
+    );
+
+    const data = await reportsAPI.getBestSellers(5);
+    expect(data.results).toHaveLength(1);
+    expect(data.results[0].product_name).toBe('Vestido');
+  });
 });

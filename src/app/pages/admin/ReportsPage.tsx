@@ -60,7 +60,7 @@ export default function ReportsPage() {
     setIsLoading(true);
     reportsAPI
       .getSales(Number(days))
-      .then((data) => setSales(data.results))
+      .then((data) => setSales(data.results ?? []))
       .catch(() => setSales([]))
       .finally(() => setIsLoading(false));
   }, [days]);
@@ -68,7 +68,7 @@ export default function ReportsPage() {
   useEffect(() => {
     reportsAPI
       .getBestSellers(Number(salesLimit))
-      .then((data) => setBestSellers(data.results))
+      .then((data) => setBestSellers(data.results ?? []))
       .catch(() => setBestSellers([]));
   }, [salesLimit]);
 
