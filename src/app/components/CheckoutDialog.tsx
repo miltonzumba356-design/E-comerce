@@ -7,14 +7,12 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
-import { MapPin, Phone, Banknote, Loader2, Truck, CheckCircle2, XCircle, CreditCard } from 'lucide-react';
+import { MapPin, Phone, Loader2, Truck, CheckCircle2, XCircle, CreditCard, Wallet, QrCode, Receipt } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { useShop } from './ShopContext';
-import { ordersAPI, paymentsAPI, DeliveryCheckResponse } from '../services/api';
+import { ordersAPI, paymentsAPI, DeliveryCheckResponse, PaymentMethod } from '../services/api';
 import { useCurrency } from '../hooks/useCurrency';
-import cartaoImage from '../../assets/payments/cartao.png';
-import transferenciaImage from '../../assets/payments/transferencia-bancaria.jpeg';
 
 interface CheckoutDialogProps {
   open: boolean;
@@ -23,16 +21,12 @@ interface CheckoutDialogProps {
   onCheckoutComplete: () => void;
 }
 
-const PAYMENT_METHODS = [
-  { value: 'cash_on_delivery', label: 'Pagamento na entrega', description: 'Pague em dinheiro ao receber', icon: Banknote, image: null },
-  {
-    value: 'bank_transfer',
-    label: 'Transferência bancária',
-    description: 'Multicaixa Express',
-    icon: null,
-    image: transferenciaImage,
-  },
-  { value: 'card', label: 'Cartão', description: 'Multicaixa', icon: null, image: cartaoImage },
+// Valores fixos pelo PaymentMethodEnum do backend — não é livre para inventar outros.
+const PAYMENT_METHODS: { value: PaymentMethod; label: string; description: string; icon: typeof CreditCard }[] = [
+  { value: 'credit_card', label: 'Cartão de Crédito', description: 'Visa, Mastercard...', icon: CreditCard },
+  { value: 'debit_card', label: 'Cartão de Débito', description: 'Débito direto na conta', icon: Wallet },
+  { value: 'pix', label: 'Pix', description: 'Pagamento instantâneo', icon: QrCode },
+  { value: 'boleto', label: 'Boleto', description: 'Pague em qualquer banco ou app', icon: Receipt },
 ];
 
 interface DeliveryResult extends DeliveryCheckResponse {
@@ -48,7 +42,7 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
   const [step, setStep] = useState<'address' | 'payment'>('address');
   const [phone, setPhone] = useState('');
   const [shippingAddress, setShippingAddress] = useState('');
-  const [method, setMethod] = useState('cash_on_delivery');
+  const [method, setMethod] = useState<PaymentMethod>('credit_card');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [postalCode, setPostalCode] = useState('');
@@ -109,6 +103,10 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
       toast.error('Por favor, insira um endereço de entrega válido');
       return false;
     }
+    if (!postalCode.trim()) {
+      toast.error('Por favor, insira o código postal');
+      return false;
+    }
     return true;
   };
 
@@ -118,53 +116,10 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
     }
   };
 
-  // Pagamento na entrega usa /orders/delivery-check/ em vez de /orders/ + /payments/process/
-  // — apenas confirma disponibilidade de entrega por item, não gera pedido/pagamento no backend.
-  const handleFinishCheckoutOnDelivery = async () => {
-    if (!postalCode.trim()) {
-      toast.error('Insira um código postal para confirmar a entrega');
-      return;
-    }
-
-    const results = await Promise.all(
-      cart.map(async (line) => {
-        const result = await ordersAPI.checkDelivery({
-          product_id: line.product.id,
-          postal_code: postalCode.trim(),
-          quantity: line.quantity,
-        });
-        return { ...result, productName: line.product.name };
-      })
-    );
-    setDeliveryResults(results);
-
-    const unavailable = results.find((r) => !r.available);
-    if (unavailable) {
-      toast.error(`Entrega indisponível para ${unavailable.productName} nesse código postal`);
-      return;
-    }
-
-    await clearCart();
-    toast.success('Pedido confirmado para pagamento na entrega!', {
-      description: 'Nossa equipe vai entrar em contacto para combinar a entrega',
-      duration: 5000,
-    });
-
-    setStep('address');
-    onCheckoutComplete();
-    onOpenChange(false);
-    navigate('/dashboard');
-  };
-
   const handleFinishCheckout = async () => {
     setIsSubmitting(true);
     try {
-      if (method === 'cash_on_delivery') {
-        await handleFinishCheckoutOnDelivery();
-        return;
-      }
-
-      const order = await ordersAPI.create(shippingAddress.trim(), method);
+      const order = await ordersAPI.create(shippingAddress.trim(), postalCode.trim(), method);
       await paymentsAPI.process(order.id, method);
       await clearCart();
 
@@ -235,7 +190,7 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="postalCode">Verificar disponibilidade de entrega (opcional)</Label>
+              <Label htmlFor="postalCode">Código Postal *</Label>
               <div className="flex gap-2">
                 <Input
                   id="postalCode"
@@ -290,8 +245,8 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
           </div>
         ) : (
           <div className="space-y-6 py-4">
-            <RadioGroup value={method} onValueChange={setMethod} className="space-y-3">
-              {PAYMENT_METHODS.map(({ value, label, description, icon: Icon, image }) => (
+            <RadioGroup value={method} onValueChange={(value) => setMethod(value as PaymentMethod)} className="space-y-3">
+              {PAYMENT_METHODS.map(({ value, label, description, icon: Icon }) => (
                 <label
                   key={value}
                   htmlFor={value}
@@ -301,11 +256,7 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
                 >
                   <RadioGroupItem value={value} id={value} />
                   <div className="h-11 w-11 shrink-0 rounded-xl border bg-white overflow-hidden flex items-center justify-center">
-                    {image ? (
-                      <img src={image} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      Icon && <Icon className="h-5 w-5 text-muted-foreground" />
-                    )}
+                    <Icon className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium">{label}</p>
@@ -314,12 +265,6 @@ export function CheckoutDialog({ open, onOpenChange, total, onCheckoutComplete }
                 </label>
               ))}
             </RadioGroup>
-
-            {method === 'cash_on_delivery' && !postalCode.trim() && (
-              <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-xl p-3">
-                Volte para "Endereço" e informe o código postal para confirmarmos a entrega.
-              </p>
-            )}
 
             <div className="bg-secondary/40 border p-4 rounded-2xl space-y-2">
               <div className="flex justify-between text-sm">

@@ -487,13 +487,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrderRequest'
+              $ref: '#/components/schemas/CreateOrderRequest'
+            examples:
+              Exemplo:
+                value:
+                  shipping_address: Rua ABC, 123
+                  postal_code: 01001-SP
+                  payment_method: pix
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/OrderRequest'
+              $ref: '#/components/schemas/CreateOrderRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/OrderRequest'
+              $ref: '#/components/schemas/CreateOrderRequest'
         required: true
       security:
       - jwtAuth: []
@@ -503,6 +509,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Order'
+              examples:
+                Exemplo:
+                  value:
+                    shipping_address: Rua ABC, 123
+                    postal_code: 01001-SP
+                    payment_method: pix
           description: ''
   /api/orders/{id}/:
     get:
@@ -561,6 +573,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
           description: ''
+  /api/orders/{id}/delivery/:
+    get:
+      operationId: api_orders_delivery_retrieve
+      description: Retorna as informacoes de entrega de um pedido.
+      summary: Entrega do pedido
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Pedidos
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
   /api/orders/{id}/status/:
     patch:
       operationId: api_orders_status_partial_update
@@ -595,10 +629,185 @@ paths:
                 $ref: '#/components/schemas/Order'
           description: ''
   /api/orders/delivery-check/:
+    get:
+      operationId: api_orders_delivery_check_retrieve
+      description: Check if a product can be delivered to a postal code region.
+      summary: Check delivery availability
+      tags:
+      - Pedidos
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                RequestExample:
+                  value:
+                    product_id: 1
+                    postal_code: 01001-SP
+                    quantity: 2
+                  summary: Request example
+                SuccessResponse:
+                  value:
+                    available: true
+                    product_id: 1
+                    postal_code: 01001-SP
+                    region: São Paulo
+                    estimated_days: 3
+                    estimated_date: '2026-07-01'
+                    shipping_cost: 15.0
+                    quantity: 2
+                  summary: Success response
+          description: Delivery info
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                ErrorResponse:
+                  value:
+                    error: product_id and postal_code are required
+                  summary: Error response
+          description: Missing required fields
     post:
       operationId: api_orders_delivery_check_create
       description: Check if a product can be delivered to a postal code region.
       summary: Check delivery availability
+      tags:
+      - Pedidos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: {}
+            examples:
+              RequestExample:
+                value:
+                  product_id: 1
+                  postal_code: 01001-SP
+                  quantity: 2
+                summary: Request example
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: {}
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: {}
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                RequestExample:
+                  value:
+                    product_id: 1
+                    postal_code: 01001-SP
+                    quantity: 2
+                  summary: Request example
+                SuccessResponse:
+                  value:
+                    available: true
+                    product_id: 1
+                    postal_code: 01001-SP
+                    region: São Paulo
+                    estimated_days: 3
+                    estimated_date: '2026-07-01'
+                    shipping_cost: 15.0
+                    quantity: 2
+                  summary: Success response
+          description: Delivery info
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                ErrorResponse:
+                  value:
+                    error: product_id and postal_code are required
+                  summary: Error response
+          description: Missing required fields
+  /api/orders/delivery-check/{id}/:
+    get:
+      operationId: api_orders_delivery_check_retrieve_2
+      description: Check if a product can be delivered to a postal code region.
+      summary: Check delivery availability
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - Pedidos
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                RequestExample:
+                  value:
+                    product_id: 1
+                    postal_code: 01001-SP
+                    quantity: 2
+                  summary: Request example
+                SuccessResponse:
+                  value:
+                    available: true
+                    product_id: 1
+                    postal_code: 01001-SP
+                    region: São Paulo
+                    estimated_days: 3
+                    estimated_date: '2026-07-01'
+                    shipping_cost: 15.0
+                    quantity: 2
+                  summary: Success response
+          description: Delivery info
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                ErrorResponse:
+                  value:
+                    error: product_id and postal_code are required
+                  summary: Error response
+          description: Missing required fields
+    post:
+      operationId: api_orders_delivery_check_create_2
+      description: Check if a product can be delivered to a postal code region.
+      summary: Check delivery availability
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
       tags:
       - Pedidos
       requestBody:
@@ -1529,6 +1738,21 @@ components:
       required:
       - name
       - slug
+    CreateOrderRequest:
+      type: object
+      properties:
+        shipping_address:
+          type: string
+          minLength: 1
+        postal_code:
+          type: string
+          minLength: 1
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+      required:
+      - payment_method
+      - postal_code
+      - shipping_address
     Dashboard:
       type: object
       properties:
@@ -1648,6 +1872,29 @@ components:
           readOnly: true
         shipping_address:
           type: string
+        shipping_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          readOnly: true
+        delivery_region:
+          type: string
+          readOnly: true
+        estimated_delivery_date:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        shipped_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        delivered_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
         items:
           type: array
           items:
@@ -1663,9 +1910,14 @@ components:
           readOnly: true
       required:
       - created_at
+      - delivered_at
+      - delivery_region
+      - estimated_delivery_date
       - id
       - items
+      - shipped_at
       - shipping_address
+      - shipping_cost
       - status
       - total
       - updated_at
@@ -2154,6 +2406,18 @@ components:
       - transaction_id
       - updated_at
       - user
+    PaymentMethodEnum:
+      enum:
+      - credit_card
+      - debit_card
+      - pix
+      - boleto
+      type: string
+      description: |-
+        * `credit_card` - credit_card
+        * `debit_card` - debit_card
+        * `pix` - pix
+        * `boleto` - boleto
     PaymentRequest:
       type: object
       properties:

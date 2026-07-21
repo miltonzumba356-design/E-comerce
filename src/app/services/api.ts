@@ -106,10 +106,18 @@ export interface Order {
   status: OrderStatusEnum;
   total: string;
   shipping_address: string;
+  shipping_cost: string;
+  delivery_region: string;
+  estimated_delivery_date: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
   items: OrderItem[];
   created_at: string;
   updated_at: string;
 }
+
+// Valores aceitos pelo backend para o campo payment_method na criação do pedido.
+export type PaymentMethod = 'credit_card' | 'debit_card' | 'pix' | 'boleto';
 
 export interface Payment {
   id: number;
@@ -675,10 +683,14 @@ export const ordersAPI = {
     return apiRequest(`/orders/${id}/`);
   },
 
-  create: async (shippingAddress: string, paymentMethod: string): Promise<Order> => {
+  create: async (shippingAddress: string, postalCode: string, paymentMethod: PaymentMethod): Promise<Order> => {
     return apiRequest('/orders/', {
       method: 'POST',
-      body: JSON.stringify({ shipping_address: shippingAddress, payment_method: paymentMethod }),
+      body: JSON.stringify({
+        shipping_address: shippingAddress,
+        postal_code: postalCode,
+        payment_method: paymentMethod,
+      }),
     });
   },
 

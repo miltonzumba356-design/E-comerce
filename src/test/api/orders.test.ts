@@ -14,7 +14,7 @@ describe('ordersAPI', () => {
     expect(data.results[0].items[0].product_name).toBe('Vestido Elegante');
   });
 
-  it('create envia {shipping_address, payment_method} — itens vêm do carrinho no servidor', async () => {
+  it('create envia {shipping_address, postal_code, payment_method} — itens vêm do carrinho no servidor', async () => {
     let capturedBody: any = null;
     server.use(
       http.post('*/api/orders/', async ({ request }) => {
@@ -26,8 +26,12 @@ describe('ordersAPI', () => {
       })
     );
 
-    const order = await ordersAPI.create('Rua Nova, 45', 'cash_on_delivery');
-    expect(capturedBody).toEqual({ shipping_address: 'Rua Nova, 45', payment_method: 'cash_on_delivery' });
+    const order = await ordersAPI.create('Rua Nova, 45', '01001-SP', 'credit_card');
+    expect(capturedBody).toEqual({
+      shipping_address: 'Rua Nova, 45',
+      postal_code: '01001-SP',
+      payment_method: 'credit_card',
+    });
     expect(order.shipping_address).toBe('Rua Nova, 45');
   });
 
